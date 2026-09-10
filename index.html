@@ -5,16 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JTS Strategy Central Report</title>
 
+<!-- PDF.js Text Layer CSS for text selection -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf_viewer.min.css">
+
 <style>
   :root {
     --accent-1: #c9489a;
     --accent-2: #c9489a;
     --accent-text: #ffffff;
     --toolbar-height: 56px;
-    --page-bg: #525659; /* Classic PDF viewer background */
-    --control-bg: rgba(255, 255, 255, 0.14);
-    --control-bg-hover: rgba(255, 255, 255, 0.24);
-    --control-bg-active: rgba(255, 255, 255, 0.32);
+    --page-bg: #eceef2;
+    --control-bg: rgba(255, 255, 255, 0.16);
+    --control-bg-hover: rgba(255, 255, 255, 0.28);
+    --control-bg-active: rgba(255, 255, 255, 0.38);
     --control-border: rgba(255, 255, 255, 0.35);
   }
 
@@ -31,7 +34,7 @@
   }
 
   /* --------------------------------
-     TOOLBAR
+     TOOLBAR LAYOUT
   -------------------------------- */
   #toolbar {
     position: fixed;
@@ -43,38 +46,38 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 0 14px;
+    gap: 16px;
+    padding: 0 16px;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
   }
 
-  .toolbar-group {
+  .toolbar-left {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 12px;
+    min-width: 0;
   }
 
-  .toolbar-group.center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 45%;
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
   #logo {
-    height: 32px;
+    height: 42px;
     width: auto;
-    max-width: 120px;
+    max-width: 150px;
     object-fit: contain;
-    border-radius: 5px;
-    margin-right: 4px;
+    border-radius: 4px;
     flex-shrink: 0;
   }
 
   #title {
     color: var(--accent-text);
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: 0.2px;
     white-space: nowrap;
@@ -86,14 +89,15 @@
     color: var(--accent-text);
     font-size: 13.5px;
     font-weight: 600;
-    min-width: 92px;
+    min-width: 90px;
     text-align: center;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.2px;
+    padding: 0 4px;
   }
 
   /* --------------------------------
-     BUTTONS
+     TOOLBAR CONTROLS
   -------------------------------- */
   .control {
     display: inline-flex;
@@ -110,7 +114,7 @@
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+    transition: background 0.15s ease, opacity 0.15s ease;
     -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
   }
@@ -127,14 +131,13 @@
   }
 
   .control:hover { background: var(--control-bg-hover); }
-  .control:active { background: var(--control-bg-active); transform: scale(0.96); }
+  .control:active { background: var(--control-bg-active); }
 
   .control:disabled {
     opacity: 0.4;
     cursor: default;
   }
   .control:disabled:hover { background: var(--control-bg); }
-  .control:disabled:active { transform: none; }
 
   .control:focus-visible {
     outline: 2px solid #ffffff;
@@ -144,12 +147,12 @@
   .divider {
     width: 1px;
     height: 22px;
-    background: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.3);
     margin: 0 4px;
   }
 
   /* --------------------------------
-     MAIN SCROLLING AREA
+     MAIN VIEWING CANVAS AREA
   -------------------------------- */
   #viewer {
     position: fixed;
@@ -159,55 +162,69 @@
     right: 0;
     overflow-y: scroll;
     overflow-x: auto;
-    padding: 32px 20px 60px 20px;
+    padding: 36px 20px 60px 20px;
     background: var(--page-bg);
     display: flex;
     flex-direction: column;
     align-items: center;
-    scroll-behavior: smooth;
   }
 
   .page {
+    position: relative;
     display: block;
-    width: fit-content;
-    margin: 0 auto 30px auto;
+    margin: 0 auto 32px auto;
     background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 12px 32px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.08);
+    border-radius: 2px;
     overflow: hidden;
-    line-height: 0;
-    /* Transparency & Scaling Animation */
-    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    opacity: 0.35;
+    /* Opacity transition ONLY - NO transform scale animations */
+    transition: opacity 0.3s ease;
+    opacity: 0.45;
   }
 
   .page.active {
     opacity: 1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 16px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18), 0 16px 40px rgba(0, 0, 0, 0.12);
   }
 
   canvas {
     display: block;
-    margin: 0 auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  /* Text selection layer overlay */
+  .textLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    opacity: 1;
+    line-height: 1.0;
   }
 
   /* --------------------------------
-     LOADING STATE
+     LOADING SPINNER
   -------------------------------- */
   #loading {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 14px;
-    color: #e2e2e2;
+    color: #555761;
     font-size: 14.5px;
-    padding-top: 120px;
+    padding-top: 140px;
   }
 
   .spinner {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.18);
+    border: 3px solid rgba(201, 72, 154, 0.2);
     border-top-color: var(--accent-1);
     animation: spin 0.8s linear infinite;
   }
@@ -217,35 +234,27 @@
   }
 
   #loading.error {
-    color: #ff6b6b;
+    color: #c92a2a;
   }
 
   /* --------------------------------
-     SCROLLBAR
+     SCROLLBARS
   -------------------------------- */
-  #viewer::-webkit-scrollbar { width: 14px; }
-  #viewer::-webkit-scrollbar-track { background: #3a3d3f; }
+  #viewer::-webkit-scrollbar { width: 12px; }
+  #viewer::-webkit-scrollbar-track { background: #dcdde3; }
   #viewer::-webkit-scrollbar-thumb {
-    background: #73777a;
-    border-radius: 8px;
-    border: 3px solid #3a3d3f;
+    background: #a3a5b3;
+    border-radius: 6px;
+    border: 3px solid #dcdde3;
   }
-  #viewer::-webkit-scrollbar-thumb:hover { background: #8e9296; }
+  #viewer::-webkit-scrollbar-thumb:hover { background: #828494; }
 
-  /* --------------------------------
-     RESPONSIVE
-  -------------------------------- */
   @media (max-width: 640px) {
     .control-label { display: none; }
-    .control { padding: 0 9px; }
-    #pageInfo { min-width: 70px; font-size: 12.5px; }
+    .control { padding: 0 8px; }
+    #title { font-size: 14px; }
+    #logo { height: 34px; }
     #viewer { padding: 16px 8px 40px 8px; }
-    #title { display: none; }
-    #logo { max-width: 80px; }
-  }
-
-  @media (max-width: 420px) {
-    #logo { display: none; }
   }
 </style>
 </head>
@@ -256,41 +265,43 @@
        TOOLBAR
   =============================== -->
   <div id="toolbar">
-    <div class="toolbar-group">
+    <div class="toolbar-left">
       <img id="logo" src="https://tep-thames.maps.arcgis.com/sharing/rest/content/items/4419448ca1fd4bac82995928b1517c08/data" alt="Logo" onerror="this.style.display='none'">
+      <span id="title">JTS Strategy Central Report</span>
+    </div>
+
+    <div class="toolbar-right">
       <button class="control" id="previous" title="Previous page" aria-label="Previous page">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M15 6l-6 6l6 6" />
         </svg>
         <span class="control-label">Previous page</span>
       </button>
+
       <button class="control" id="next" title="Next page" aria-label="Next page">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M9 6l6 6l-6 6" />
         </svg>
         <span class="control-label">Next page</span>
       </button>
-    </div>
 
-    <div class="toolbar-group center">
-      <span id="title">JTS Strategy Central Report</span>
-    </div>
-
-    <div class="toolbar-group">
       <span id="pageInfo">Loading…</span>
+
       <div class="divider"></div>
+
       <button class="control icon-only" id="zoomOut" title="Zoom out" aria-label="Zoom out">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
           <path d="M21 21l-6 -6" />
           <path d="M7 10l6 0" />
         </svg>
       </button>
+
       <button class="control icon-only" id="zoomIn" title="Zoom in" aria-label="Zoom in">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-in">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
           <path d="M21 21l-6 -6" />
@@ -302,29 +313,29 @@
   </div>
 
   <!-- ==============================
-       PDF VIEWER
+       PDF VIEWER CONTAINER
   =============================== -->
   <div id="viewer">
     <div id="loading">
       <div class="spinner"></div>
-      <span>Loading report…</span>
+      <span>Loading JTS Strategy Report…</span>
     </div>
   </div>
 
   <!-- ==============================
-       PDF.JS
+       PDF.JS ENGINE LOGIC
   =============================== -->
   <script type="module">
     import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
     /* --------------------------------
-       MASTER PDF
+       MASTER PDF URL
     -------------------------------- */
     const PDF_URL = "https://tep-thames.maps.arcgis.com/sharing/rest/content/items/ea21c731645442e4b1e33a7d1b920166/data";
 
     /* --------------------------------
-       STATE
+       VIEWER STATE
     -------------------------------- */
     let pdf = null;
     let baseScale = 1;      
@@ -335,10 +346,9 @@
     let resizeTimer = null;
 
     const dpr = window.devicePixelRatio || 1;
-    const MIN_ZOOM = 0.5;
-    const MAX_ZOOM = 3;
-    const ZOOM_STEP = 0.2;
-    const SIDE_PADDING = 40; 
+    const MIN_ZOOM = 0.4;
+    const MAX_ZOOM = 3.0;
+    const ZOOM_STEP = 0.15;
 
     const viewerEl = document.getElementById("viewer");
     const pageInfoEl = document.getElementById("pageInfo");
@@ -348,18 +358,19 @@
     const zoomOutBtn = document.getElementById("zoomOut");
 
     /* --------------------------------
-       DYNAMIC PAGE URL HANDLING
+       DYNAMIC PAGE URL PARAMETER
     -------------------------------- */
     function getRequestedPage() {
+      // Check for #page=N hash parameter first (standard for ArcGIS Web Maps)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       if (hashParams.has("page")) return parseInt(hashParams.get("page"));
       
+      // Fallback to ?page=N search query parameter
       const queryParams = new URLSearchParams(window.location.search);
       if (queryParams.has("page")) return parseInt(queryParams.get("page"));
       
       return NaN;
     }
-    const requestedPage = getRequestedPage();
 
     /* --------------------------------
        LAZY RENDERING OBSERVER
@@ -370,14 +381,14 @@
           const pageNumber = parseInt(entry.target.dataset.page);
           const pageObj = pages.find(p => p.number === pageNumber);
           if (pageObj && !pageObj.rendered) {
-            renderCanvas(pageObj);
+            renderPageContents(pageObj);
           }
         }
       });
-    }, { root: viewerEl, rootMargin: "600px 0px" }); 
+    }, { root: viewerEl, rootMargin: "800px 0px" }); 
 
     /* --------------------------------
-       LOAD PDF
+       LOAD DOCUMENT
     -------------------------------- */
     async function loadPDF() {
       try {
@@ -385,36 +396,38 @@
         const loadingEl = document.getElementById("loading");
         if (loadingEl) loadingEl.remove();
 
-        await computeFitScale();
+        await computeDefaultFitScale();
         await prepareAllPages();
 
+        const requestedPage = getRequestedPage();
         if (!isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= pdf.numPages) {
-          // Wait briefly for DOM to calculate heights before scrolling to target
           setTimeout(() => {
             scrollToPage(requestedPage, false);
-          }, 150);
+          }, 100);
         }
 
         window.addEventListener("resize", onResize);
       } catch (error) {
-        console.error(error);
+        console.error("Failed to load PDF:", error);
         const loadingEl = document.getElementById("loading");
         if (loadingEl) {
           loadingEl.classList.add("error");
-          loadingEl.innerHTML = "<span>Unable to load the report.</span>";
+          loadingEl.innerHTML = "<span>Unable to load the report document.</span>";
         }
         pageInfoEl.textContent = "Error";
       }
     }
 
     /* --------------------------------
-       FIT-TO-WIDTH BASE SCALE
+       DEFAULT FIT SCALE (~60% WIDTH)
     -------------------------------- */
-    async function computeFitScale() {
+    async function computeDefaultFitScale() {
       const firstPage = await pdf.getPage(1);
       const unscaledViewport = firstPage.getViewport({ scale: 1 });
-      const availableWidth = Math.max(viewerEl.clientWidth - SIDE_PADDING, 280);
-      baseScale = availableWidth / unscaledViewport.width;
+      
+      // Target 62% of viewer width for comfortable desktop margins matching design screenshot
+      const targetWidth = Math.min(Math.max(viewerEl.clientWidth * 0.62, 340), viewerEl.clientWidth - 40);
+      baseScale = targetWidth / unscaledViewport.width;
     }
 
     function currentScale() {
@@ -422,7 +435,7 @@
     }
 
     /* --------------------------------
-       PREPARE PAGES (LAZY LOAD ENABLED)
+       PREPARE PAGE DOM CONTAINERS
     -------------------------------- */
     async function prepareAllPages() {
       if (isRendering) return;
@@ -463,35 +476,69 @@
       updatePageIndicator();
     }
 
-    async function renderCanvas(pageObj) {
+    /* --------------------------------
+       RENDER CANVAS & TEXT LAYER
+    -------------------------------- */
+    async function renderPageContents(pageObj) {
+      if (pageObj.rendered) return;
       pageObj.rendered = true;
-      const canvas = document.createElement("canvas");
-      
-      canvas.width = Math.floor(pageObj.viewport.width * dpr);
-      canvas.height = Math.floor(pageObj.viewport.height * dpr);
-      canvas.style.width = Math.floor(pageObj.viewport.width) + "px";
-      canvas.style.height = Math.floor(pageObj.viewport.height) + "px";
 
-      pageObj.container.appendChild(canvas);
+      const { container, pageData, viewport } = pageObj;
+
+      // 1. Render Canvas Layer
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.floor(viewport.width * dpr);
+      canvas.height = Math.floor(viewport.height * dpr);
+      canvas.style.width = Math.floor(viewport.width) + "px";
+      canvas.style.height = Math.floor(viewport.height) + "px";
+
+      container.appendChild(canvas);
       const context = canvas.getContext("2d");
       const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
 
-      await pageObj.pageData.render({
+      const renderPromise = pageData.render({
         canvasContext: context,
-        viewport: pageObj.viewport,
+        viewport: viewport,
         transform: transform
       }).promise;
+
+      // 2. Render Text Layer for Text Selection
+      const textLayerDiv = document.createElement("div");
+      textLayerDiv.className = "textLayer";
+      textLayerDiv.style.width = Math.floor(viewport.width) + "px";
+      textLayerDiv.style.height = Math.floor(viewport.height) + "px";
+      container.appendChild(textLayerDiv);
+
+      try {
+        const textContent = await pageData.getTextContent();
+        
+        // Use PDF.js TextLayer renderer
+        if (pdfjsLib.TextLayer) {
+          const textLayer = new pdfjsLib.TextLayer({
+            textContentSource: textContent,
+            container: textLayerDiv,
+            viewport: viewport
+          });
+          await textLayer.render();
+        }
+      } catch (err) {
+        console.warn(`Text layer render warning on page ${pageObj.number}:`, err);
+      }
+
+      await renderPromise;
     }
 
     /* --------------------------------
-       SCROLL TO PAGE
+       SCROLL & ACTIVE PAGE INDICATOR
     -------------------------------- */
     function scrollToPage(pageNumber, smooth = true) {
       const target = pages.find(p => p.number === pageNumber);
       if (!target) return;
-      target.container.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
-        block: "center"
+      
+      const targetTop = target.container.offsetTop - viewerEl.offsetTop - 20;
+      viewerEl.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: smooth ? "smooth" : "auto"
       });
     }
 
@@ -500,19 +547,15 @@
       return match ? parseInt(match[0]) : 1;
     }
 
-    /* --------------------------------
-       ACTIVE PAGE ANIMATIONS & INDICATOR
-    -------------------------------- */
     function updatePageIndicator() {
       if (!pages.length) return;
       
       let closestPage = pages[0];
       let minDistance = Infinity;
-      const viewportCenter = window.innerHeight / 2;
+      const viewportCenter = viewerEl.scrollTop + (viewerEl.clientHeight / 2);
 
       for (const page of pages) {
-        const rect = page.container.getBoundingClientRect();
-        const pageCenter = rect.top + (rect.height / 2);
+        const pageCenter = page.container.offsetTop + (page.container.offsetHeight / 2);
         const distance = Math.abs(pageCenter - viewportCenter);
 
         if (distance < minDistance) {
@@ -533,11 +576,11 @@
           }
         });
         
-        updateNavState(current);
+        updateNavButtons(current);
       }
     }
 
-    function updateNavState(current) {
+    function updateNavButtons(current) {
       const page = current ?? getCurrentPageNumber();
       previousBtn.disabled = page <= 1;
       nextBtn.disabled = page >= (pdf ? pdf.numPages : 1);
@@ -545,10 +588,10 @@
       zoomInBtn.disabled = zoomMultiplier >= MAX_ZOOM;
     }
 
-    viewerEl.addEventListener("scroll", updatePageIndicator);
+    viewerEl.addEventListener("scroll", updatePageIndicator, { passive: true });
 
     /* --------------------------------
-       NEXT / PREVIOUS
+       NEXT / PREVIOUS CONTROLS
     -------------------------------- */
     nextBtn.addEventListener("click", () => {
       const current = getCurrentPageNumber();
@@ -561,28 +604,29 @@
     });
 
     /* --------------------------------
-       SMOOTH ZOOM (MAINTAINS SCROLL)
+       SMOOTH ZOOM (EXACT SCROLL PRESERVATION)
     -------------------------------- */
     async function applyZoom(delta) {
       const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(zoomMultiplier + delta).toFixed(2)));
       if (next === zoomMultiplier) return;
 
-      // 1. Calculate relative scroll position before zooming
-      const current = getCurrentPageNumber();
-      const targetPage = pages.find(p => p.number === current);
-      let relativeScroll = 0;
-      
-      if (targetPage) {
-          const rect = targetPage.container.getBoundingClientRect();
-          const viewerRect = viewerEl.getBoundingClientRect();
-          relativeScroll = (viewerRect.top - rect.top) / rect.height;
+      // Save scroll ratio on the active page
+      const currentNum = getCurrentPageNumber();
+      const activePage = pages.find(p => p.number === currentNum);
+      let pageOffsetRatio = 0;
+
+      if (activePage) {
+        const pageRectTop = activePage.container.offsetTop;
+        pageOffsetRatio = (viewerEl.scrollTop - pageRectTop) / activePage.container.offsetHeight;
       }
 
       zoomMultiplier = next;
       userZoomed = true;
 
-      // 2. Resize containers immediately without destroying DOM elements
+      visibilityObserver.disconnect();
       const scale = currentScale();
+
+      // Resize all containers instantly
       for (const pageObj of pages) {
         const viewport = pageObj.pageData.getViewport({ scale });
         pageObj.viewport = viewport;
@@ -590,41 +634,38 @@
         pageObj.container.style.width = Math.floor(viewport.width) + "px";
         pageObj.container.style.height = Math.floor(viewport.height) + "px";
         
-        // Clear old canvases so Observer forces re-render at new resolution
+        // Clear contents so observer re-renders at high DPR
         pageObj.container.innerHTML = "";
         pageObj.rendered = false; 
+        visibilityObserver.observe(pageObj.container);
       }
 
-      // 3. Restore scroll position mathematically
-      if (targetPage) {
-         const newRect = targetPage.container.getBoundingClientRect();
-         viewerEl.scrollTop += newRect.top - viewerEl.getBoundingClientRect().top + (newRect.height * relativeScroll);
+      // Restore relative scroll position on current page
+      if (activePage) {
+        const newPageTop = activePage.container.offsetTop;
+        const newPageHeight = activePage.container.offsetHeight;
+        viewerEl.scrollTop = newPageTop + (newPageHeight * pageOffsetRatio);
       }
+
+      updateNavButtons(currentNum);
     }
 
     zoomInBtn.addEventListener("click", () => applyZoom(ZOOM_STEP));
     zoomOutBtn.addEventListener("click", () => applyZoom(-ZOOM_STEP));
 
     /* --------------------------------
-       RESPONSIVE REFIT
+       WINDOW RESIZE
     -------------------------------- */
     function onResize() {
       if (userZoomed) return;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(async () => {
-        const current = getCurrentPageNumber();
-        const targetPage = pages.find(p => p.number === current);
-        let relativeScroll = 0;
-        
-        if (targetPage) {
-            const rect = targetPage.container.getBoundingClientRect();
-            const viewerRect = viewerEl.getBoundingClientRect();
-            relativeScroll = (viewerRect.top - rect.top) / rect.height;
-        }
-
-        await computeFitScale();
+        const currentNum = getCurrentPageNumber();
+        await computeDefaultFitScale();
         
         const scale = currentScale();
+        visibilityObserver.disconnect();
+
         for (const pageObj of pages) {
           const viewport = pageObj.pageData.getViewport({ scale });
           pageObj.viewport = viewport;
@@ -632,21 +673,18 @@
           pageObj.container.style.height = Math.floor(viewport.height) + "px";
           pageObj.container.innerHTML = "";
           pageObj.rendered = false; 
+          visibilityObserver.observe(pageObj.container);
         }
 
-        if (targetPage) {
-           const newRect = targetPage.container.getBoundingClientRect();
-           viewerEl.scrollTop += newRect.top - viewerEl.getBoundingClientRect().top + (newRect.height * relativeScroll);
-        }
+        scrollToPage(currentNum, false);
       }, 200);
     }
 
     /* --------------------------------
-       START
+       START APPLICATION
     -------------------------------- */
     loadPDF();
 
   </script>
-
 </body>
 </html>
