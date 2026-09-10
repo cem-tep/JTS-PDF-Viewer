@@ -155,6 +155,9 @@
   canvas {
     display: block;
     margin: 0 auto;
+    /* Forces canvas to always fill exactly the resized container smoothly */
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .textLayer {
@@ -301,8 +304,8 @@
     let userZoomed = false; 
     let pages = [];
     let currentPageNum = 1;
-    let isRendering = false;
-    let isZooming = false;
+    let isZooming = false; 
+    let zoomScrollTimeout = null;
     let resizeTimer = null;
 
     const dpr = window.devicePixelRatio || 1;
@@ -347,7 +350,7 @@
         if (entry.isIntersecting) {
           const pageNumber = parseInt(entry.target.dataset.page, 10);
           const pageObj = pages.find(p => p.number === pageNumber);
-          if (pageObj && !pageObj.rendered) {
+          if (pageObj && !pageObj.rendered && !pageObj.isRendering) {
             renderCanvas(pageObj);
           }
         }
@@ -366,7 +369,6 @@
 
         const requestedPage = parseRequestedPage();
         
-        // Wait for DOM to paint, scroll, THEN remove loader to avoid flicker
         requestAnimationFrame(() => {
           if (!isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= pdf.numPages) {
             scrollToPage(requestedPage, false);
@@ -404,9 +406,6 @@
     }
 
     async function prepareAllPages() {
-      if (isRendering) return;
-      isRendering = true;
-
       visibilityObserver.disconnect();
       viewerEl.querySelectorAll(".page").forEach(el => el.remove());
       pages = [];
@@ -432,27 +431,27 @@
           container: pageContainer, 
           pageData: page, 
           viewport: viewport, 
-          rendered: false 
+          rendered: false,
+          isRendering: false
         };
         
         pages.push(pageObj);
         visibilityObserver.observe(pageContainer);
       }
-
-      isRendering = false;
     }
 
+    /* --------------------------------
+        SEAMLESS RENDERING 
+    -------------------------------- */
     async function renderCanvas(pageObj) {
-      if (pageObj.rendered) return;
-      pageObj.rendered = true;
+      if (pageObj.rendered || pageObj.isRendering) return;
+      pageObj.isRendering = true;
       
+      // Generate the new high-res canvas invisibly in memory first
       const canvas = document.createElement("canvas");
       canvas.width = Math.floor(pageObj.viewport.width * dpr);
       canvas.height = Math.floor(pageObj.viewport.height * dpr);
-      canvas.style.width = Math.floor(pageObj.viewport.width) + "px";
-      canvas.style.height = Math.floor(pageObj.viewport.height) + "px";
 
-      pageObj.container.appendChild(canvas);
       const context = canvas.getContext("2d");
       const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
 
@@ -462,9 +461,13 @@
         transform: transform
       });
 
-      await renderTask.promise;
-
       try {
+        await renderTask.promise;
+
+        // The instant the new canvas is ready, swap it out so there is zero flickering
+        pageObj.container.innerHTML = "";
+        pageObj.container.appendChild(canvas);
+
         const textContent = await pageObj.pageData.getTextContent();
         const textLayerDiv = document.createElement("div");
         textLayerDiv.className = "textLayer";
@@ -485,8 +488,12 @@
             textDivs: []
           });
         }
+        
+        pageObj.rendered = true;
       } catch (err) {
-        console.warn("Text layer rendering skipped/error:", err);
+        console.warn("Render error:", err);
+      } finally {
+        pageObj.isRendering = false;
       }
     }
 
@@ -525,6 +532,7 @@
     }
 
     function onScrollUpdate() {
+      // If we are zooming, lock the scroll event completely to prevent wild jumps
       if (!pages.length || isZooming) return;
 
       const viewerCenter = viewerEl.scrollTop + (viewerEl.clientHeight / 2);
@@ -558,19 +566,25 @@
     });
 
     /* --------------------------------
-        STABLE ZOOM ANCHORING
+        MATHEMATICAL ZOOM ANCHORING
     -------------------------------- */
     async function applyZoom(delta) {
       const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(zoomMultiplier + delta).toFixed(2)));
       if (next === zoomMultiplier || !pages.length) return;
 
+      // Lock UI Page Number Indicator
       isZooming = true;
 
+      // 1. Calculate absolute position percentage of the currently viewed page before layout shift
       const targetPage = pages.find(p => p.number === currentPageNum) || pages[0];
-      const targetTop = targetPage.container.offsetTop;
-      const targetHeight = targetPage.container.offsetHeight || 1;
-      const scrollOffsetRatio = (viewerEl.scrollTop - targetTop) / targetHeight;
+      const rectBefore = targetPage.container.getBoundingClientRect();
+      const viewerRect = viewerEl.getBoundingClientRect();
+      
+      // Calculate how far down the user is scrolled relative to the current page (negative = page is above viewport)
+      const topOffset = rectBefore.top - viewerRect.top;
+      const ratioY = topOffset / rectBefore.height;
 
+      // 2. Apply new scale visually immediately
       zoomMultiplier = next;
       userZoomed = true;
       const scale = currentScale();
@@ -581,21 +595,33 @@
         pageObj.container.style.width = Math.floor(viewport.width) + "px";
         pageObj.container.style.height = Math.floor(viewport.height) + "px";
         
-        pageObj.container.innerHTML = "";
+        // Hide crisp text during zoom to prevent layout breakage, let the canvas handle visuals
+        const existingText = pageObj.container.querySelector(".textLayer");
+        if (existingText) existingText.style.display = "none";
+        
         pageObj.rendered = false; 
       }
 
-      const newTargetTop = targetPage.container.offsetTop;
-      const newTargetHeight = targetPage.container.offsetHeight;
-      viewerEl.scrollTop = newTargetTop + (newTargetHeight * scrollOffsetRatio);
-
-      pages.forEach(p => visibilityObserver.observe(p.container));
+      // 3. Shift the scrollbar to match the new heights, keeping the page dead-center
+      const newHeight = targetPage.container.offsetHeight;
+      const targetTopOffset = newHeight * ratioY;
+      
+      const rectAfter = targetPage.container.getBoundingClientRect();
+      const currentTopOffset = rectAfter.top - viewerRect.top;
+      const diff = currentTopOffset - targetTopOffset;
+      
+      viewerEl.scrollTop += diff;
 
       updatePageIndicatorUI();
 
-      requestAnimationFrame(() => {
+      // Trigger high-res rerendering invisibly in background
+      pages.forEach(p => visibilityObserver.observe(p.container));
+
+      // Unlock UI safely after layout shifts finish settling
+      clearTimeout(zoomScrollTimeout);
+      zoomScrollTimeout = setTimeout(() => {
         isZooming = false;
-      });
+      }, 300);
     }
 
     zoomInBtn.addEventListener("click", () => applyZoom(ZOOM_STEP));
@@ -606,10 +632,12 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(async () => {
         isZooming = true;
+        
         const targetPage = pages.find(p => p.number === currentPageNum) || pages[0];
-        const targetTop = targetPage.container.offsetTop;
-        const targetHeight = targetPage.container.offsetHeight || 1;
-        const scrollOffsetRatio = (viewerEl.scrollTop - targetTop) / targetHeight;
+        const rectBefore = targetPage.container.getBoundingClientRect();
+        const viewerRect = viewerEl.getBoundingClientRect();
+        const topOffset = rectBefore.top - viewerRect.top;
+        const ratioY = topOffset / rectBefore.height;
 
         await computeFitScale();
         const scale = currentScale();
@@ -620,19 +648,25 @@
           pageObj.container.style.width = Math.floor(viewport.width) + "px";
           pageObj.container.style.height = Math.floor(viewport.height) + "px";
           
-          pageObj.container.innerHTML = "";
+          const existingText = pageObj.container.querySelector(".textLayer");
+          if (existingText) existingText.style.display = "none";
+          
           pageObj.rendered = false; 
         }
 
-        const newTargetTop = targetPage.container.offsetTop;
-        const newTargetHeight = targetPage.container.offsetHeight;
-        viewerEl.scrollTop = newTargetTop + (newTargetHeight * scrollOffsetRatio);
-
+        const newHeight = targetPage.container.offsetHeight;
+        const targetTopOffset = newHeight * ratioY;
+        const rectAfter = targetPage.container.getBoundingClientRect();
+        const currentTopOffset = rectAfter.top - viewerRect.top;
+        const diff = currentTopOffset - targetTopOffset;
+        
+        viewerEl.scrollTop += diff;
         pages.forEach(p => visibilityObserver.observe(p.container));
 
-        requestAnimationFrame(() => {
+        clearTimeout(zoomScrollTimeout);
+        zoomScrollTimeout = setTimeout(() => {
           isZooming = false;
-        });
+        }, 300);
       }, 200);
     }
 
