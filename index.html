@@ -32,9 +32,7 @@
     overflow: hidden;
   }
 
-  /* --------------------------------
-     TOOLBAR
-  -------------------------------- */
+  /* TOOLBAR */
   #toolbar {
     position: fixed;
     top: 0;
@@ -86,9 +84,7 @@
     letter-spacing: 0.2px;
   }
 
-  /* --------------------------------
-     BUTTONS
-  -------------------------------- */
+  /* BUTTONS */
   .control {
     display: inline-flex;
     align-items: center;
@@ -125,9 +121,7 @@
     margin: 0 4px;
   }
 
-  /* --------------------------------
-     MAIN SCROLLING AREA
-  -------------------------------- */
+  /* MAIN SCROLLING AREA */
   #viewer {
     position: fixed;
     top: var(--toolbar-height);
@@ -141,7 +135,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    scroll-behavior: auto; /* Handled via JS for exact targeting */
   }
 
   .page {
@@ -152,13 +145,11 @@
     background: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 16px 40px rgba(0, 0, 0, 0.25);
     opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.4s ease;
+    transition: opacity 0.3s ease, box-shadow 0.4s ease;
   }
 
   .page.visible {
     opacity: 1;
-    transform: translateY(0);
   }
 
   canvas {
@@ -180,17 +171,23 @@
     background: rgba(0, 100, 255, 0.25);
   }
 
-  /* --------------------------------
-     LOADING STATE & SCROLLBAR
-  -------------------------------- */
+  /* LOADING STATE & SCROLLBAR */
   #loading {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 14px;
     color: #e2e2e2;
     font-size: 14.5px;
-    padding-top: 120px;
+    position: fixed;
+    top: var(--toolbar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--page-bg);
+    z-index: 500;
+    transition: opacity 0.3s ease;
   }
 
   .spinner {
@@ -240,7 +237,7 @@
 
     <div class="toolbar-group">
       <button class="control" id="previous" title="Previous page" aria-label="Previous page">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-left">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-left" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M15 6l-6 6l6 6" />
         </svg>
@@ -249,7 +246,7 @@
       
       <button class="control" id="next" title="Next page" aria-label="Next page">
         <span class="control-label">Next page</span>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-right" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M9 6l6 6l-6 6" />
         </svg>
@@ -258,7 +255,7 @@
       <div class="divider"></div>
 
       <button class="control icon-only" id="zoomOut" title="Zoom out" aria-label="Zoom out">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-out">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-zoom-out" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
           <path d="M21 21l-6 -6" />
@@ -267,7 +264,7 @@
       </button>
       
       <button class="control icon-only" id="zoomIn" title="Zoom in" aria-label="Zoom in">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-zoom-in">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-zoom-in" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
           <path d="M21 21l-6 -6" />
@@ -283,10 +280,13 @@
   </div>
 
   <div id="viewer">
-    <div id="loading">
-      <div class="spinner"></div>
-      <span>Loading report…</span>
-    </div>
+    <!-- PDF pages will be appended here -->
+  </div>
+
+  <!-- Full screen loader overlay -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <span>Loading report…</span>
   </div>
 
   <script type="module">
@@ -296,11 +296,13 @@
     const PDF_URL = "https://tep-thames.maps.arcgis.com/sharing/rest/content/items/ea21c731645442e4b1e33a7d1b920166/data";
 
     let pdf = null;
-    let baseScale = 1;      
+    let baseScale = 1;     
     let zoomMultiplier = 1; 
     let userZoomed = false; 
     let pages = [];
+    let currentPageNum = 1;
     let isRendering = false;
+    let isZooming = false;
     let resizeTimer = null;
 
     const dpr = window.devicePixelRatio || 1;
@@ -314,67 +316,73 @@
     const nextBtn = document.getElementById("next");
     const zoomInBtn = document.getElementById("zoomIn");
     const zoomOutBtn = document.getElementById("zoomOut");
+    const loadingEl = document.getElementById("loading");
 
     /* --------------------------------
-       SAFE URL PARSING
+        ROBUST URL PARSING
     -------------------------------- */
-    function getRequestedPage() {
-      try {
-        const hash = window.location.hash;
-        if (hash.includes('page=')) {
-          return parseInt(hash.split('page=')[1].split('&')[0]);
+    function parseRequestedPage() {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('page')) {
+        const page = parseInt(searchParams.get('page'), 10);
+        if (!isNaN(page)) return page;
+      }
+
+      const hash = window.location.hash;
+      if (hash) {
+        const match = hash.match(/page=(\d+)/);
+        if (match && match[1]) {
+          const page = parseInt(match[1], 10);
+          if (!isNaN(page)) return page;
         }
-        const search = window.location.search;
-        if (search.includes('page=')) {
-          return parseInt(search.split('page=')[1].split('&')[0]);
-        }
-      } catch(err) {
-        console.warn("Could not parse requested page.");
       }
       return NaN;
     }
 
-    const requestedPage = getRequestedPage();
-
     /* --------------------------------
-       LAZY RENDERING OBSERVER
+        LAZY RENDERING OBSERVER
     -------------------------------- */
     const visibilityObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          const pageNumber = parseInt(entry.target.dataset.page);
+          const pageNumber = parseInt(entry.target.dataset.page, 10);
           const pageObj = pages.find(p => p.number === pageNumber);
           if (pageObj && !pageObj.rendered) {
             renderCanvas(pageObj);
           }
         }
       });
-    }, { root: viewerEl, rootMargin: "800px 0px" }); 
+    }, { root: viewerEl, rootMargin: "800px 0px" });
 
     /* --------------------------------
-       LOAD PDF
+        LOAD & INITIALIZE PDF
     -------------------------------- */
     async function loadPDF() {
       try {
         pdf = await pdfjsLib.getDocument({ url: PDF_URL }).promise;
-        const loadingEl = document.getElementById("loading");
-        if (loadingEl) loadingEl.remove();
 
         await computeFitScale();
         await prepareAllPages();
 
-        if (!isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= pdf.numPages) {
-          // Double timeout fallback to ensure large DOM structures are completely painted before scrolling
-          requestAnimationFrame(() => {
-            setTimeout(() => { scrollToPage(requestedPage, false); }, 200);
-            setTimeout(() => { scrollToPage(requestedPage, false); }, 600);
-          });
-        }
+        const requestedPage = parseRequestedPage();
+        
+        // Wait for DOM to paint, scroll, THEN remove loader to avoid flicker
+        requestAnimationFrame(() => {
+          if (!isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= pdf.numPages) {
+            scrollToPage(requestedPage, false);
+          } else {
+            updatePageIndicatorUI();
+          }
+          
+          if (loadingEl) {
+            loadingEl.style.opacity = '0';
+            setTimeout(() => loadingEl.remove(), 300);
+          }
+        });
 
         window.addEventListener("resize", onResize);
       } catch (error) {
         console.error("PDF Load Error:", error);
-        const loadingEl = document.getElementById("loading");
         if (loadingEl) {
           loadingEl.classList.add("error");
           loadingEl.innerHTML = "<span>Unable to load the report.</span>";
@@ -412,14 +420,12 @@
         const pageContainer = document.createElement("div");
         pageContainer.className = "page";
         pageContainer.dataset.page = pageNumber;
-        
         pageContainer.style.width = Math.floor(viewport.width) + "px";
         pageContainer.style.height = Math.floor(viewport.height) + "px";
 
         viewerEl.appendChild(pageContainer);
         
-        // Trigger smooth reveal animation
-        setTimeout(() => pageContainer.classList.add("visible"), 50);
+        requestAnimationFrame(() => pageContainer.classList.add("visible"));
 
         const pageObj = { 
           number: pageNumber, 
@@ -434,10 +440,10 @@
       }
 
       isRendering = false;
-      updatePageIndicator();
     }
 
     async function renderCanvas(pageObj) {
+      if (pageObj.rendered) return;
       pageObj.rendered = true;
       
       const canvas = document.createElement("canvas");
@@ -464,58 +470,70 @@
         textLayerDiv.className = "textLayer";
         pageObj.container.appendChild(textLayerDiv);
 
-        pdfjsLib.renderTextLayer({
-          textContentSource: textContent,
-          container: textLayerDiv,
-          viewport: pageObj.viewport,
-          textDivs: []
-        });
+        if (pdfjsLib.TextLayer) {
+          const textLayer = new pdfjsLib.TextLayer({
+            textContentSource: textContent,
+            container: textLayerDiv,
+            viewport: pageObj.viewport
+          });
+          await textLayer.render();
+        } else if (typeof pdfjsLib.renderTextLayer === 'function') {
+          pdfjsLib.renderTextLayer({
+            textContentSource: textContent,
+            container: textLayerDiv,
+            viewport: pageObj.viewport,
+            textDivs: []
+          });
+        }
       } catch (err) {
-        console.warn("Text layer error", err);
+        console.warn("Text layer rendering skipped/error:", err);
       }
     }
 
     /* --------------------------------
-       EXACT SCROLL TARGETING
+        SCROLL & NAVIGATION LOGIC
     -------------------------------- */
     function scrollToPage(pageNumber, smooth = true) {
+      if (!pdf || pageNumber < 1 || pageNumber > pdf.numPages) return;
       const target = pages.find(p => p.number === pageNumber);
       if (!target) return;
 
-      const viewerRect = viewerEl.getBoundingClientRect();
-      const targetRect = target.container.getBoundingClientRect();
-      
-      // Calculate absolute scroll position accurately inside the custom container
-      const scrollTopPos = viewerEl.scrollTop + (targetRect.top - viewerRect.top) - 30;
+      const targetTop = target.container.offsetTop - 20;
 
       viewerEl.scrollTo({
-        top: scrollTopPos,
+        top: Math.max(0, targetTop),
         behavior: smooth ? "smooth" : "auto"
       });
 
-      // Page highlight flash effect
+      currentPageNum = pageNumber;
+      updatePageIndicatorUI();
+
       target.container.style.boxShadow = "0 0 0 4px var(--accent-1), 0 16px 40px rgba(0,0,0,0.25)";
       setTimeout(() => {
         target.container.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2), 0 16px 40px rgba(0, 0, 0, 0.25)";
       }, 1000);
     }
 
-    function getCurrentPageNumber() {
-      const match = pageInfoEl.textContent.match(/\d+/);
-      return match ? parseInt(match[0]) : 1;
+    function updatePageIndicatorUI() {
+      if (!pdf) return;
+      pageInfoEl.textContent = `Page ${currentPageNum} of ${pdf.numPages}`;
+      
+      previousBtn.disabled = currentPageNum <= 1;
+      nextBtn.disabled = currentPageNum >= pdf.numPages;
+      zoomOutBtn.disabled = zoomMultiplier <= MIN_ZOOM;
+      zoomInBtn.disabled = zoomMultiplier >= MAX_ZOOM;
     }
 
-    function updatePageIndicator() {
-      if (!pages.length) return;
-      
+    function onScrollUpdate() {
+      if (!pages.length || isZooming) return;
+
+      const viewerCenter = viewerEl.scrollTop + (viewerEl.clientHeight / 2);
       let closestPage = pages[0];
       let minDistance = Infinity;
-      const viewportCenter = window.innerHeight / 2;
 
       for (const page of pages) {
-        const rect = page.container.getBoundingClientRect();
-        const pageCenter = rect.top + (rect.height / 2);
-        const distance = Math.abs(pageCenter - viewportCenter);
+        const pageCenter = page.container.offsetTop + (page.container.offsetHeight / 2);
+        const distance = Math.abs(pageCenter - viewerCenter);
 
         if (distance < minDistance) {
           minDistance = distance;
@@ -523,45 +541,35 @@
         }
       }
 
-      if (closestPage) {
-        const current = closestPage.number;
-        pageInfoEl.textContent = `Page ${current} of ${pdf.numPages}`;
-        
-        previousBtn.disabled = current <= 1;
-        nextBtn.disabled = current >= pdf.numPages;
-        zoomOutBtn.disabled = zoomMultiplier <= MIN_ZOOM;
-        zoomInBtn.disabled = zoomMultiplier >= MAX_ZOOM;
+      if (closestPage && closestPage.number !== currentPageNum) {
+        currentPageNum = closestPage.number;
+        updatePageIndicatorUI();
       }
     }
 
-    viewerEl.addEventListener("scroll", updatePageIndicator);
+    viewerEl.addEventListener("scroll", onScrollUpdate);
 
     nextBtn.addEventListener("click", () => {
-      const current = getCurrentPageNumber();
-      if (pdf && current < pdf.numPages) scrollToPage(current + 1);
+      if (pdf && currentPageNum < pdf.numPages) scrollToPage(currentPageNum + 1);
     });
 
     previousBtn.addEventListener("click", () => {
-      const current = getCurrentPageNumber();
-      if (current > 1) scrollToPage(current - 1);
+      if (currentPageNum > 1) scrollToPage(currentPageNum - 1);
     });
 
     /* --------------------------------
-       PRECISE ZOOM ANCHORING
+        STABLE ZOOM ANCHORING
     -------------------------------- */
     async function applyZoom(delta) {
       const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(zoomMultiplier + delta).toFixed(2)));
-      if (next === zoomMultiplier) return;
+      if (next === zoomMultiplier || !pages.length) return;
 
-      const current = getCurrentPageNumber();
-      const targetPage = pages.find(p => p.number === current);
-      let relativeScroll = 0;
-      
-      if (targetPage) {
-          const rect = targetPage.container.getBoundingClientRect();
-          const viewerRect = viewerEl.getBoundingClientRect();
-          relativeScroll = (viewerRect.top - rect.top) / rect.height;
-      }
+      isZooming = true;
+
+      const targetPage = pages.find(p => p.number === currentPageNum) || pages[0];
+      const targetTop = targetPage.container.offsetTop;
+      const targetHeight = targetPage.container.offsetHeight || 1;
+      const scrollOffsetRatio = (viewerEl.scrollTop - targetTop) / targetHeight;
 
       zoomMultiplier = next;
       userZoomed = true;
@@ -577,28 +585,31 @@
         pageObj.rendered = false; 
       }
 
-      if (targetPage) {
-         const newRect = targetPage.container.getBoundingClientRect();
-         viewerEl.scrollTop += newRect.top - viewerEl.getBoundingClientRect().top + (newRect.height * relativeScroll);
-      }
+      const newTargetTop = targetPage.container.offsetTop;
+      const newTargetHeight = targetPage.container.offsetHeight;
+      viewerEl.scrollTop = newTargetTop + (newTargetHeight * scrollOffsetRatio);
+
+      pages.forEach(p => visibilityObserver.observe(p.container));
+
+      updatePageIndicatorUI();
+
+      requestAnimationFrame(() => {
+        isZooming = false;
+      });
     }
 
     zoomInBtn.addEventListener("click", () => applyZoom(ZOOM_STEP));
     zoomOutBtn.addEventListener("click", () => applyZoom(-ZOOM_STEP));
 
     function onResize() {
-      if (userZoomed) return;
+      if (userZoomed || !pages.length) return;
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(async () => {
-        const current = getCurrentPageNumber();
-        const targetPage = pages.find(p => p.number === current);
-        let relativeScroll = 0;
-        
-        if (targetPage) {
-            const rect = targetPage.container.getBoundingClientRect();
-            const viewerRect = viewerEl.getBoundingClientRect();
-            relativeScroll = (viewerRect.top - rect.top) / rect.height;
-        }
+        isZooming = true;
+        const targetPage = pages.find(p => p.number === currentPageNum) || pages[0];
+        const targetTop = targetPage.container.offsetTop;
+        const targetHeight = targetPage.container.offsetHeight || 1;
+        const scrollOffsetRatio = (viewerEl.scrollTop - targetTop) / targetHeight;
 
         await computeFitScale();
         const scale = currentScale();
@@ -613,10 +624,15 @@
           pageObj.rendered = false; 
         }
 
-        if (targetPage) {
-           const newRect = targetPage.container.getBoundingClientRect();
-           viewerEl.scrollTop += newRect.top - viewerEl.getBoundingClientRect().top + (newRect.height * relativeScroll);
-        }
+        const newTargetTop = targetPage.container.offsetTop;
+        const newTargetHeight = targetPage.container.offsetHeight;
+        viewerEl.scrollTop = newTargetTop + (newTargetHeight * scrollOffsetRatio);
+
+        pages.forEach(p => visibilityObserver.observe(p.container));
+
+        requestAnimationFrame(() => {
+          isZooming = false;
+        });
       }, 200);
     }
 
