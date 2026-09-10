@@ -155,7 +155,6 @@
   canvas {
     display: block;
     margin: 0 auto;
-    /* Forces canvas to always fill exactly the resized container smoothly */
     width: 100% !important;
     height: 100% !important;
   }
@@ -447,7 +446,6 @@
       if (pageObj.rendered || pageObj.isRendering) return;
       pageObj.isRendering = true;
       
-      // Generate the new high-res canvas invisibly in memory first
       const canvas = document.createElement("canvas");
       canvas.width = Math.floor(pageObj.viewport.width * dpr);
       canvas.height = Math.floor(pageObj.viewport.height * dpr);
@@ -464,7 +462,6 @@
       try {
         await renderTask.promise;
 
-        // The instant the new canvas is ready, swap it out so there is zero flickering
         pageObj.container.innerHTML = "";
         pageObj.container.appendChild(canvas);
 
@@ -532,7 +529,6 @@
     }
 
     function onScrollUpdate() {
-      // If we are zooming, lock the scroll event completely to prevent wild jumps
       if (!pages.length || isZooming) return;
 
       const viewerCenter = viewerEl.scrollTop + (viewerEl.clientHeight / 2);
@@ -566,25 +562,25 @@
     });
 
     /* --------------------------------
-        MATHEMATICAL ZOOM ANCHORING
+        ROCK-SOLID ZOOM ANCHORING ENGINE
     -------------------------------- */
     async function applyZoom(delta) {
       const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(zoomMultiplier + delta).toFixed(2)));
       if (next === zoomMultiplier || !pages.length) return;
 
-      // Lock UI Page Number Indicator
+      // 1. Lock the scroll event tracker so scrolling during zoom won't jump pages
       isZooming = true;
 
-      // 1. Calculate absolute position percentage of the currently viewed page before layout shift
-      const targetPage = pages.find(p => p.number === currentPageNum) || pages[0];
-      const rectBefore = targetPage.container.getBoundingClientRect();
-      const viewerRect = viewerEl.getBoundingClientRect();
+      // 2. Lock current page anchor and calculate relative position inside page
+      const anchoredPageNum = currentPageNum;
+      const targetPage = pages.find(p => p.number === anchoredPageNum) || pages[0];
       
-      // Calculate how far down the user is scrolled relative to the current page (negative = page is above viewport)
-      const topOffset = rectBefore.top - viewerRect.top;
-      const ratioY = topOffset / rectBefore.height;
+      const currentScrollTop = viewerEl.scrollTop;
+      const oldPageTop = targetPage.container.offsetTop;
+      const oldPageHeight = targetPage.container.offsetHeight || 1;
+      const relativeOffset = (currentScrollTop - oldPageTop) / oldPageHeight;
 
-      // 2. Apply new scale visually immediately
+      // 3. Update scale & resize page containers
       zoomMultiplier = next;
       userZoomed = true;
       const scale = currentScale();
@@ -595,33 +591,32 @@
         pageObj.container.style.width = Math.floor(viewport.width) + "px";
         pageObj.container.style.height = Math.floor(viewport.height) + "px";
         
-        // Hide crisp text during zoom to prevent layout breakage, let the canvas handle visuals
         const existingText = pageObj.container.querySelector(".textLayer");
         if (existingText) existingText.style.display = "none";
         
         pageObj.rendered = false; 
       }
 
-      // 3. Shift the scrollbar to match the new heights, keeping the page dead-center
-      const newHeight = targetPage.container.offsetHeight;
-      const targetTopOffset = newHeight * ratioY;
-      
-      const rectAfter = targetPage.container.getBoundingClientRect();
-      const currentTopOffset = rectAfter.top - viewerRect.top;
-      const diff = currentTopOffset - targetTopOffset;
-      
-      viewerEl.scrollTop += diff;
+      // 4. Reposition scrollbar synchronously based on new page heights
+      const newPageTop = targetPage.container.offsetTop;
+      const newPageHeight = targetPage.container.offsetHeight;
+      viewerEl.scrollTop = Math.max(0, newPageTop + (newPageHeight * relativeOffset));
 
+      // 5. Ensure current page stays strictly locked
+      currentPageNum = anchoredPageNum;
       updatePageIndicatorUI();
 
-      // Trigger high-res rerendering invisibly in background
-      pages.forEach(p => visibilityObserver.observe(p.container));
+      // 6. Re-observe for rendering high-res canvas
+      pages.forEach(p => {
+        visibilityObserver.unobserve(p.container);
+        visibilityObserver.observe(p.container);
+      });
 
-      // Unlock UI safely after layout shifts finish settling
+      // 7. Release lock after layout shifts settle
       clearTimeout(zoomScrollTimeout);
       zoomScrollTimeout = setTimeout(() => {
         isZooming = false;
-      }, 300);
+      }, 400);
     }
 
     zoomInBtn.addEventListener("click", () => applyZoom(ZOOM_STEP));
@@ -633,11 +628,12 @@
       resizeTimer = setTimeout(async () => {
         isZooming = true;
         
-        const targetPage = pages.find(p => p.number === currentPageNum) || pages[0];
-        const rectBefore = targetPage.container.getBoundingClientRect();
-        const viewerRect = viewerEl.getBoundingClientRect();
-        const topOffset = rectBefore.top - viewerRect.top;
-        const ratioY = topOffset / rectBefore.height;
+        const anchoredPageNum = currentPageNum;
+        const targetPage = pages.find(p => p.number === anchoredPageNum) || pages[0];
+        const currentScrollTop = viewerEl.scrollTop;
+        const oldPageTop = targetPage.container.offsetTop;
+        const oldPageHeight = targetPage.container.offsetHeight || 1;
+        const relativeOffset = (currentScrollTop - oldPageTop) / oldPageHeight;
 
         await computeFitScale();
         const scale = currentScale();
@@ -654,19 +650,22 @@
           pageObj.rendered = false; 
         }
 
-        const newHeight = targetPage.container.offsetHeight;
-        const targetTopOffset = newHeight * ratioY;
-        const rectAfter = targetPage.container.getBoundingClientRect();
-        const currentTopOffset = rectAfter.top - viewerRect.top;
-        const diff = currentTopOffset - targetTopOffset;
-        
-        viewerEl.scrollTop += diff;
-        pages.forEach(p => visibilityObserver.observe(p.container));
+        const newPageTop = targetPage.container.offsetTop;
+        const newPageHeight = targetPage.container.offsetHeight;
+        viewerEl.scrollTop = Math.max(0, newPageTop + (newPageHeight * relativeOffset));
+
+        currentPageNum = anchoredPageNum;
+        updatePageIndicatorUI();
+
+        pages.forEach(p => {
+          visibilityObserver.unobserve(p.container);
+          visibilityObserver.observe(p.container);
+        });
 
         clearTimeout(zoomScrollTimeout);
         zoomScrollTimeout = setTimeout(() => {
           isZooming = false;
-        }, 300);
+        }, 400);
       }, 200);
     }
 
