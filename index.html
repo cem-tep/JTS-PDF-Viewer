@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
 
   <title>LMRP Report Viewer</title>
+
 
   <style>
 
@@ -12,97 +18,251 @@
       box-sizing: border-box;
     }
 
-    html, body {
+
+    html,
+    body {
+
       margin: 0;
       padding: 0;
+
       width: 100%;
       height: 100%;
-      font-family: Arial, sans-serif;
-      background: #525659;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      background: #e9e9e9;
+
     }
+
 
     body {
+
       overflow: hidden;
+
     }
 
-    /* TOP TOOLBAR */
+
+    /* --------------------------------
+       TOP TOOLBAR
+    -------------------------------- */
 
     #toolbar {
-      height: 52px;
-      background: #333;
-      color: white;
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed;
 
-      gap: 10px;
-      padding: 0 15px;
-    }
-
-    button {
-      background: #555;
-      color: white;
-
-      border: none;
-      border-radius: 4px;
-
-      padding: 7px 13px;
-
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    button:hover {
-      background: #666;
-    }
-
-    #pageInfo {
-      min-width: 120px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-
-    /* PDF VIEWER */
-
-    #viewer {
-      position: absolute;
-
-      top: 52px;
-      bottom: 0;
+      top: 0;
       left: 0;
       right: 0;
 
-      overflow-y: auto;
-      overflow-x: auto;
+      height: 58px;
 
-      padding: 25px;
+      background: #c9489a;
 
-      text-align: center;
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      gap: 10px;
+
+      padding: 0 16px;
+
+      z-index: 1000;
+
+      box-shadow:
+        0 2px 8px rgba(0,0,0,0.18);
+
     }
 
 
-    /* PDF PAGE */
+    /* --------------------------------
+       BUTTONS
+    -------------------------------- */
 
-    #pdfCanvas {
+    .control {
+
+      border: 1px solid
+        rgba(255,255,255,0.55);
+
+      background:
+        rgba(255,255,255,0.18);
+
+      color: white;
+
+      border-radius: 7px;
+
+      padding:
+        8px 13px;
+
+      font-size: 14px;
+
+      cursor: pointer;
+
+      backdrop-filter:
+        blur(5px);
+
+      transition:
+        background 0.15s ease;
+
+    }
+
+
+    .control:hover {
+
+      background:
+        rgba(255,255,255,0.30);
+
+    }
+
+
+    .control:active {
+
+      background:
+        rgba(255,255,255,0.40);
+
+    }
+
+
+    #pageInfo {
+
+      color: white;
+
+      font-size: 14px;
+
+      font-weight: 500;
+
+      min-width: 110px;
+
+      text-align: center;
+
+    }
+
+
+    /* --------------------------------
+       MAIN SCROLLING AREA
+    -------------------------------- */
+
+    #viewer {
+
+      position: fixed;
+
+      top: 58px;
+
+      bottom: 0;
+
+      left: 0;
+
+      right: 0;
+
+      overflow-y: scroll;
+
+      overflow-x: auto;
+
+      padding:
+
+        28px
+        20px
+        60px
+        20px;
+
+      background: #e9e9e9;
+
+      text-align: center;
+
+    }
+
+
+    /* --------------------------------
+       PDF PAGE CONTAINER
+    -------------------------------- */
+
+    .page {
+
       display: block;
 
-      margin: 0 auto 25px auto;
+      margin:
+
+        0
+        auto
+        24px
+        auto;
 
       background: white;
 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+      box-shadow:
+        0 2px 12px
+        rgba(0,0,0,0.18);
+
     }
 
+
+    /* --------------------------------
+       CANVAS
+    -------------------------------- */
+
+    canvas {
+
+      display: block;
+
+      margin: 0 auto;
+
+    }
+
+
+    /* --------------------------------
+       LOADING MESSAGE
+    -------------------------------- */
 
     #loading {
-      color: white;
 
-      font-size: 18px;
+      color: #555;
 
-      margin-top: 50px;
+      font-size: 17px;
+
+      padding-top: 60px;
+
     }
+
+
+    /* --------------------------------
+       SCROLLBAR
+    -------------------------------- */
+
+    #viewer::-webkit-scrollbar {
+
+      width: 12px;
+
+    }
+
+
+    #viewer::-webkit-scrollbar-track {
+
+      background: #d8d8d8;
+
+    }
+
+
+    #viewer::-webkit-scrollbar-thumb {
+
+      background: #999;
+
+      border-radius: 8px;
+
+      border: 3px solid #d8d8d8;
+
+    }
+
+
+    #viewer::-webkit-scrollbar-thumb:hover {
+
+      background: #777;
+
+    }
+
 
   </style>
 
@@ -112,147 +272,207 @@
 <body>
 
 
+  <!-- ==============================
+       TOOLBAR
+  =============================== -->
+
   <div id="toolbar">
 
-    <button id="previous">
+
+    <button
+      class="control"
+      id="previous">
+
       Previous
+
     </button>
 
 
     <span id="pageInfo">
+
       Loading...
+
     </span>
 
 
-    <button id="next">
+    <button
+      class="control"
+      id="next">
+
       Next
+
     </button>
 
 
-    <button id="zoomOut">
+    <button
+      class="control"
+      id="zoomOut">
+
       −
+
     </button>
 
 
-    <button id="zoomIn">
+    <button
+      class="control"
+      id="zoomIn">
+
       +
+
     </button>
+
 
   </div>
 
 
+
+  <!-- ==============================
+       PDF VIEWER
+  =============================== -->
 
   <div id="viewer">
 
     <div id="loading">
-      Loading report...
-    </div>
 
-    <canvas
-      id="pdfCanvas"
-      style="display:none;">
-    </canvas>
+      Loading report...
+
+    </div>
 
   </div>
 
 
+
+  <!-- ==============================
+       PDF.JS
+  =============================== -->
 
   <script type="module">
 
 
     import * as pdfjsLib from
+
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
 
 
     pdfjsLib.GlobalWorkerOptions.workerSrc =
+
       "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
 
 
-    /*
-      YOUR MASTER PDF
-    */
+    /* --------------------------------
+       MASTER PDF
+    -------------------------------- */
 
     const PDF_URL =
+
       "https://tep-thames.maps.arcgis.com/sharing/rest/content/items/ea21c731645442e4b1e33a7d1b920166/data";
 
 
 
-    let pdf = null;
+    /* --------------------------------
+       VARIABLES
+    -------------------------------- */
 
-    let currentPage = 1;
+    let pdf = null;
 
     let scale = 1;
 
+    let pages = [];
 
 
-    /*
-      Read the page number from the URL.
 
-      Example:
+    /* --------------------------------
+       STARTING PAGE
 
-      ?page=127
-
-    */
+       ?page=127
+    -------------------------------- */
 
     const params =
-      new URLSearchParams(window.location.search);
+
+      new URLSearchParams(
+        window.location.search
+      );
 
 
     const requestedPage =
-      parseInt(params.get("page"));
 
-
-    if (!isNaN(requestedPage) && requestedPage > 0) {
-
-      currentPage = requestedPage;
-
-    }
+      parseInt(
+        params.get("page")
+      );
 
 
 
-    /*
-      Load the PDF
-    */
+    /* --------------------------------
+       LOAD PDF
+    -------------------------------- */
 
     async function loadPDF() {
 
       try {
 
-        pdf =
-          await pdfjsLib.getDocument({
+
+        pdf = await
+
+          pdfjsLib.getDocument({
+
             url: PDF_URL
+
           }).promise;
 
 
-        if (currentPage > pdf.numPages) {
 
-          currentPage = pdf.numPages;
+        document.getElementById(
+          "loading"
+        ).remove();
+
+
+
+        /*
+          Render all pages
+        */
+
+        await renderAllPages();
+
+
+
+        /*
+          If a page was supplied in the URL,
+          scroll to that page.
+        */
+
+        if (
+
+          !isNaN(requestedPage) &&
+
+          requestedPage >= 1 &&
+
+          requestedPage <= pdf.numPages
+
+        ) {
+
+          setTimeout(() => {
+
+            scrollToPage(
+              requestedPage
+            );
+
+          }, 100);
 
         }
 
 
-        document.getElementById("loading").style.display =
-          "none";
+      }
 
-
-        document.getElementById("pdfCanvas").style.display =
-          "block";
-
-
-        /*
-          Start at a sensible size
-        */
-
-        await fitPage();
-
-
-      } catch (error) {
+      catch (error) {
 
         console.error(error);
 
 
-        document.getElementById("loading").textContent =
+        document.getElementById(
+          "loading"
+        ).textContent =
+
           "Unable to load the report.";
 
       }
@@ -261,252 +481,445 @@
 
 
 
-    /*
-      Calculate a sensible size for the page
-      based on the available viewer width.
-    */
+    /* --------------------------------
+       RENDER ALL PAGES
+    -------------------------------- */
 
-    async function fitPage() {
-
-      const page =
-        await pdf.getPage(currentPage);
-
-
-      const unscaledViewport =
-        page.getViewport({
-          scale: 1
-        });
+    async function renderAllPages() {
 
 
       const viewer =
-        document.getElementById("viewer");
+
+        document.getElementById(
+          "viewer"
+        );
 
 
-      const availableWidth =
-        viewer.clientWidth - 50;
+      for (
+
+        let pageNumber = 1;
+
+        pageNumber <= pdf.numPages;
+
+        pageNumber++
+
+      ) {
 
 
-      scale =
-        availableWidth /
-        unscaledViewport.width;
+        const page =
+
+          await pdf.getPage(
+            pageNumber
+          );
 
 
-      /*
-        Don't make the PDF ridiculously large
-      */
+        const viewport =
 
-      if (scale > 2) {
-        scale = 2;
+          page.getViewport({
+
+            scale: scale
+
+          });
+
+
+
+        /*
+          Create page wrapper
+        */
+
+        const pageContainer =
+
+          document.createElement(
+            "div"
+          );
+
+
+        pageContainer.className =
+          "page";
+
+
+        pageContainer.dataset.page =
+          pageNumber;
+
+
+
+        /*
+          Create canvas
+        */
+
+        const canvas =
+
+          document.createElement(
+            "canvas"
+          );
+
+
+        canvas.width =
+          viewport.width;
+
+        canvas.height =
+          viewport.height;
+
+
+
+        pageContainer.appendChild(
+          canvas
+        );
+
+
+        viewer.appendChild(
+          pageContainer
+        );
+
+
+
+        const context =
+          canvas.getContext("2d");
+
+
+        await page.render({
+
+          canvasContext:
+            context,
+
+          viewport:
+            viewport
+
+        }).promise;
+
+
+        pages.push({
+
+          number:
+            pageNumber,
+
+          container:
+            pageContainer
+
+        });
+
       }
 
 
-      await renderPage();
+      updatePageIndicator();
 
     }
 
 
 
-    /*
-      Render the current page
-    */
+    /* --------------------------------
+       SCROLL TO PAGE
+    -------------------------------- */
 
-    async function renderPage() {
-
-      const page =
-        await pdf.getPage(currentPage);
-
-
-      const viewport =
-        page.getViewport({
-          scale: scale
-        });
+    function scrollToPage(
+      pageNumber
+    ) {
 
 
-      const canvas =
-        document.getElementById("pdfCanvas");
+      const target =
+
+        pages.find(
+          p =>
+            p.number === pageNumber
+        );
 
 
-      const context =
-        canvas.getContext("2d");
+      if (!target) return;
 
 
-      canvas.width =
-        viewport.width;
+      target.container.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "start"
+
+      });
+
+    }
 
 
-      canvas.height =
-        viewport.height;
+
+    /* --------------------------------
+       PAGE INDICATOR
+    -------------------------------- */
+
+    function updatePageIndicator() {
 
 
-      await page.render({
+      const viewer =
 
-        canvasContext: context,
-
-        viewport: viewport
-
-      }).promise;
+        document.getElementById(
+          "viewer"
+        );
 
 
-      document.getElementById("pageInfo").textContent =
+      const viewerTop =
+        viewer.scrollTop;
+
+
+      let current = 1;
+
+
+      for (
+        const page of pages
+      ) {
+
+
+        if (
+
+          page.container.offsetTop
+          <=
+          viewerTop + 150
+
+        ) {
+
+          current =
+            page.number;
+
+        }
+
+      }
+
+
+      document.getElementById(
+        "pageInfo"
+      ).textContent =
+
         "Page " +
-        currentPage +
+
+        current +
+
         " of " +
+
         pdf.numPages;
 
-
-      /*
-        Go to the top when changing page
-      */
-
-      document.getElementById("viewer").scrollTop = 0;
-
     }
 
 
 
-    /*
-      PREVIOUS PAGE
-    */
-
-    document
-      .getElementById("previous")
-      .addEventListener("click", function() {
-
-        if (currentPage > 1) {
-
-          currentPage--;
-
-          fitPage();
-
-        }
-
-      });
-
-
-
-    /*
-      NEXT PAGE
-    */
-
-    document
-      .getElementById("next")
-      .addEventListener("click", function() {
-
-        if (currentPage < pdf.numPages) {
-
-          currentPage++;
-
-          fitPage();
-
-        }
-
-      });
-
-
-
-    /*
-      ZOOM IN
-    */
-
-    document
-      .getElementById("zoomIn")
-      .addEventListener("click", function() {
-
-        scale += 0.2;
-
-        renderPage();
-
-      });
-
-
-
-    /*
-      ZOOM OUT
-    */
-
-    document
-      .getElementById("zoomOut")
-      .addEventListener("click", function() {
-
-        if (scale > 0.4) {
-
-          scale -= 0.2;
-
-          renderPage();
-
-        }
-
-      });
-
-
-
-    /*
-      MOUSE WHEEL
-
-      Scrolling down = next page
-      Scrolling up = previous page
-
-    */
+    /* --------------------------------
+       SCROLL EVENT
+    -------------------------------- */
 
     document
       .getElementById("viewer")
-      .addEventListener("wheel", function(event) {
-
-        /*
-          Prevent normal page scrolling
-        */
-
-        event.preventDefault();
+      .addEventListener(
+        "scroll",
+        updatePageIndicator
+      );
 
 
-        if (event.deltaY > 0) {
 
-          if (currentPage < pdf.numPages) {
+    /* --------------------------------
+       NEXT
+    -------------------------------- */
 
-            currentPage++;
+    document
+      .getElementById("next")
+      .addEventListener(
+        "click",
+        function() {
 
-            fitPage();
 
-          }
+          const currentText =
 
-        } else {
+            document.getElementById(
+              "pageInfo"
+            ).textContent;
 
-          if (currentPage > 1) {
 
-            currentPage--;
+          const match =
+            currentText.match(/\d+/);
 
-            fitPage();
+
+          const current =
+
+            match
+              ? parseInt(match[0])
+              : 1;
+
+
+          if (
+            current < pdf.numPages
+          ) {
+
+            scrollToPage(
+              current + 1
+            );
 
           }
 
         }
-
-      }, {
-        passive: false
-      });
+      );
 
 
 
-    /*
-      If the browser window changes size,
-      refit the page.
-    */
+    /* --------------------------------
+       PREVIOUS
+    -------------------------------- */
 
-    window.addEventListener("resize", function() {
-
-      if (pdf) {
-
-        fitPage();
-
-      }
-
-    });
+    document
+      .getElementById("previous")
+      .addEventListener(
+        "click",
+        function() {
 
 
+          const currentText =
 
-    /*
-      START
-    */
+            document.getElementById(
+              "pageInfo"
+            ).textContent;
+
+
+          const match =
+            currentText.match(/\d+/);
+
+
+          const current =
+
+            match
+              ? parseInt(match[0])
+              : 1;
+
+
+          if (current > 1) {
+
+            scrollToPage(
+              current - 1
+            );
+
+          }
+
+        }
+      );
+
+
+
+    /* --------------------------------
+       ZOOM IN
+    -------------------------------- */
+
+    document
+      .getElementById("zoomIn")
+      .addEventListener(
+        "click",
+        async function() {
+
+
+          scale += 0.2;
+
+
+          await rerender();
+
+        }
+      );
+
+
+
+    /* --------------------------------
+       ZOOM OUT
+    -------------------------------- */
+
+    document
+      .getElementById("zoomOut")
+      .addEventListener(
+        "click",
+        async function() {
+
+
+          if (scale <= 0.6) {
+            return;
+          }
+
+
+          scale -= 0.2;
+
+
+          await rerender();
+
+        }
+      );
+
+
+
+    /* --------------------------------
+       RERENDER AFTER ZOOM
+    -------------------------------- */
+
+    async function rerender() {
+
+
+      const viewer =
+
+        document.getElementById(
+          "viewer"
+        );
+
+
+      /*
+        Remember current page
+      */
+
+      const currentText =
+
+        document.getElementById(
+          "pageInfo"
+        ).textContent;
+
+
+      const match =
+        currentText.match(/\d+/);
+
+
+      const currentPage =
+
+        match
+          ? parseInt(match[0])
+          : 1;
+
+
+      /*
+        Remove existing pages
+      */
+
+      viewer
+        .querySelectorAll(".page")
+        .forEach(
+          element =>
+            element.remove()
+        );
+
+
+      pages = [];
+
+
+      /*
+        Render again
+      */
+
+      await renderAllPages();
+
+
+      /*
+        Return to the page we were on
+      */
+
+      setTimeout(() => {
+
+        scrollToPage(
+          currentPage
+        );
+
+      }, 50);
+
+    }
+
+
+
+    /* --------------------------------
+       START
+    -------------------------------- */
 
     loadPDF();
 
@@ -515,4 +928,5 @@
 
 
 </body>
+
 </html>
