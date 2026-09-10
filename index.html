@@ -1,932 +1,618 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0">
-
-  <title>LMRP Report Viewer</title>
-
-
-  <style>
-
-    * {
-      box-sizing: border-box;
-    }
-
-
-    html,
-    body {
-
-      margin: 0;
-      padding: 0;
-
-      width: 100%;
-      height: 100%;
-
-      font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-      background: #e9e9e9;
-
-    }
-
-
-    body {
-
-      overflow: hidden;
-
-    }
-
-
-    /* --------------------------------
-       TOP TOOLBAR
-    -------------------------------- */
-
-    #toolbar {
-
-      position: fixed;
-
-      top: 0;
-      left: 0;
-      right: 0;
-
-      height: 58px;
-
-      background: #c9489a;
-
-      display: flex;
-
-      align-items: center;
-
-      justify-content: center;
-
-      gap: 10px;
-
-      padding: 0 16px;
-
-      z-index: 1000;
-
-      box-shadow:
-        0 2px 8px rgba(0,0,0,0.18);
-
-    }
-
-
-    /* --------------------------------
-       BUTTONS
-    -------------------------------- */
-
-    .control {
-
-      border: 1px solid
-        rgba(255,255,255,0.55);
-
-      background:
-        rgba(255,255,255,0.18);
-
-      color: white;
-
-      border-radius: 7px;
-
-      padding:
-        8px 13px;
-
-      font-size: 14px;
-
-      cursor: pointer;
-
-      backdrop-filter:
-        blur(5px);
-
-      transition:
-        background 0.15s ease;
-
-    }
-
-
-    .control:hover {
-
-      background:
-        rgba(255,255,255,0.30);
-
-    }
-
-
-    .control:active {
-
-      background:
-        rgba(255,255,255,0.40);
-
-    }
-
-
-    #pageInfo {
-
-      color: white;
-
-      font-size: 14px;
-
-      font-weight: 500;
-
-      min-width: 110px;
-
-      text-align: center;
-
-    }
-
-
-    /* --------------------------------
-       MAIN SCROLLING AREA
-    -------------------------------- */
-
-    #viewer {
-
-      position: fixed;
-
-      top: 58px;
-
-      bottom: 0;
-
-      left: 0;
-
-      right: 0;
-
-      overflow-y: scroll;
-
-      overflow-x: auto;
-
-      padding:
-
-        28px
-        20px
-        60px
-        20px;
-
-      background: #e9e9e9;
-
-      text-align: center;
-
-    }
-
-
-    /* --------------------------------
-       PDF PAGE CONTAINER
-    -------------------------------- */
-
-    .page {
-
-      display: block;
-
-      margin:
-
-        0
-        auto
-        24px
-        auto;
-
-      background: white;
-
-      box-shadow:
-        0 2px 12px
-        rgba(0,0,0,0.18);
-
-    }
-
-
-    /* --------------------------------
-       CANVAS
-    -------------------------------- */
-
-    canvas {
-
-      display: block;
-
-      margin: 0 auto;
-
-    }
-
-
-    /* --------------------------------
-       LOADING MESSAGE
-    -------------------------------- */
-
-    #loading {
-
-      color: #555;
-
-      font-size: 17px;
-
-      padding-top: 60px;
-
-    }
-
-
-    /* --------------------------------
-       SCROLLBAR
-    -------------------------------- */
-
-    #viewer::-webkit-scrollbar {
-
-      width: 12px;
-
-    }
-
-
-    #viewer::-webkit-scrollbar-track {
-
-      background: #d8d8d8;
-
-    }
-
-
-    #viewer::-webkit-scrollbar-thumb {
-
-      background: #999;
-
-      border-radius: 8px;
-
-      border: 3px solid #d8d8d8;
-
-    }
-
-
-    #viewer::-webkit-scrollbar-thumb:hover {
-
-      background: #777;
-
-    }
-
-
-  </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JTS Strategy Report Viewer</title>
+
+<style>
+  :root {
+    --accent-1: #c9489a;
+    --accent-2: #c9489a;
+    --accent-text: #ffffff;
+    --toolbar-height: 56px;
+    --page-bg: #eceef2;
+    --control-bg: rgba(255, 255, 255, 0.14);
+    --control-bg-hover: rgba(255, 255, 255, 0.24);
+    --control-bg-active: rgba(255, 255, 255, 0.32);
+    --control-border: rgba(255, 255, 255, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--page-bg);
+    overflow: hidden;
+  }
+
+  /* --------------------------------
+     TOOLBAR
+  -------------------------------- */
+  #toolbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--toolbar-height);
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(76, 29, 149, 0.28);
+  }
+
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .toolbar-group.center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 45%;
+  }
+
+  #logo {
+    height: 32px;
+    width: auto;
+    max-width: 120px;
+    object-fit: contain;
+    border-radius: 5px;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  #title {
+    color: var(--accent-text);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #pageInfo {
+    color: var(--accent-text);
+    font-size: 13.5px;
+    font-weight: 600;
+    min-width: 92px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+  }
+
+  /* --------------------------------
+     BUTTONS
+  -------------------------------- */
+  .control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--control-border);
+    background: var(--control-bg);
+    color: var(--accent-text);
+    border-radius: 8px;
+    height: 34px;
+    padding: 0 12px;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+  }
+
+  .control.icon-only {
+    width: 34px;
+    padding: 0;
+  }
+
+  .control svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  .control:hover { background: var(--control-bg-hover); }
+  .control:active { background: var(--control-bg-active); transform: scale(0.96); }
+
+  .control:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .control:disabled:hover { background: var(--control-bg); }
+  .control:disabled:active { transform: none; }
+
+  .control:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.28);
+    margin: 0 4px;
+  }
+
+  /* --------------------------------
+     MAIN SCROLLING AREA
+  -------------------------------- */
+  #viewer {
+    position: fixed;
+    top: var(--toolbar-height);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: scroll;
+    overflow-x: auto;
+    padding: 32px 20px 60px 20px;
+    background: var(--page-bg);
+    text-align: center;
+    scroll-behavior: smooth;
+  }
+
+  .page {
+    display: block;
+    margin: 0 auto 30px auto;
+    background: white;
+    box-shadow: 0 2px 8px rgba(20, 20, 40, 0.15), 0 12px 32px rgba(20, 20, 40, 0.10);
+    border-radius: 4px;
+    overflow: hidden;
+    line-height: 0;
+    /* Transparency & Scaling Animation */
+    transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+
+  .page.active {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(20, 20, 40, 0.2), 0 16px 40px rgba(20, 20, 40, 0.15);
+  }
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* --------------------------------
+     LOADING STATE
+  -------------------------------- */
+  #loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    color: #6b6b7a;
+    font-size: 14.5px;
+    padding-top: 120px;
+  }
+
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 3px solid rgba(109, 40, 217, 0.18);
+    border-top-color: var(--accent-1);
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  #loading.error {
+    color: #b42318;
+  }
+
+  /* --------------------------------
+     SCROLLBAR
+  -------------------------------- */
+  #viewer::-webkit-scrollbar { width: 12px; }
+  #viewer::-webkit-scrollbar-track { background: #dcdde3; }
+  #viewer::-webkit-scrollbar-thumb {
+    background: #a9a9b8;
+    border-radius: 8px;
+    border: 3px solid #dcdde3;
+  }
+  #viewer::-webkit-scrollbar-thumb:hover { background: #8c8c9e; }
+
+  /* --------------------------------
+     RESPONSIVE
+  -------------------------------- */
+  @media (max-width: 640px) {
+    .control-label { display: none; }
+    .control { padding: 0 9px; }
+    #pageInfo { min-width: 70px; font-size: 12.5px; }
+    #viewer { padding: 16px 8px 40px 8px; }
+    #title { display: none; }
+    #logo { max-width: 80px; }
+  }
+
+  @media (max-width: 420px) {
+    #logo { display: none; }
+  }
+</style>
 </head>
 
-
 <body>
-
 
   <!-- ==============================
        TOOLBAR
   =============================== -->
-
   <div id="toolbar">
+    <div class="toolbar-group">
+      <img id="logo" src="https://tep-thames.maps.arcgis.com/sharing/rest/content/items/4419448ca1fd4bac82995928b1517c08/data" alt="Logo">
+      <button class="control" id="previous" title="Previous page" aria-label="Previous page">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M15 6l-6 6l6 6" />
+        </svg>
+        <span class="control-label">Previous page</span>
+      </button>
+      <button class="control" id="next" title="Next page" aria-label="Next page">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M9 6l6 6l-6 6" />
+        </svg>
+        <span class="control-label">Next page</span>
+      </button>
+    </div>
 
+    <div class="toolbar-group center">
+      <span id="title">JTS Strategy Central Report</span>
+    </div>
 
-    <button
-      class="control"
-      id="previous">
-
-      Previous
-
-    </button>
-
-
-    <span id="pageInfo">
-
-      Loading...
-
-    </span>
-
-
-    <button
-      class="control"
-      id="next">
-
-      Next
-
-    </button>
-
-
-    <button
-      class="control"
-      id="zoomOut">
-
-      −
-
-    </button>
-
-
-    <button
-      class="control"
-      id="zoomIn">
-
-      +
-
-    </button>
-
-
+    <div class="toolbar-group">
+      <span id="pageInfo">Loading…</span>
+      <div class="divider"></div>
+      <button class="control icon-only" id="zoomOut" title="Zoom out" aria-label="Zoom out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+          <path d="M21 21l-6 -6" />
+          <path d="M7 10l6 0" />
+        </svg>
+      </button>
+      <button class="control icon-only" id="zoomIn" title="Zoom in" aria-label="Zoom in">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+          <path d="M21 21l-6 -6" />
+          <path d="M7 10l6 0" />
+          <path d="M10 7l0 6" />
+        </svg>
+      </button>
+      <div class="divider"></div>
+      <button class="control icon-only" id="openNewTab" title="Open in new tab" aria-label="Open report in a new tab">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" />
+          <path d="M11 13l9 -9" />
+          <path d="M15 4h5v5" />
+        </svg>
+      </button>
+    </div>
   </div>
-
-
 
   <!-- ==============================
        PDF VIEWER
   =============================== -->
-
   <div id="viewer">
-
     <div id="loading">
-
-      Loading report...
-
+      <div class="spinner"></div>
+      <span>Loading report…</span>
     </div>
-
   </div>
-
-
 
   <!-- ==============================
        PDF.JS
   =============================== -->
-
   <script type="module">
-
-
-    import * as pdfjsLib from
-
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-
-
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
-
-
+    import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
     /* --------------------------------
        MASTER PDF
     -------------------------------- */
-
-    const PDF_URL =
-
-      "https://tep-thames.maps.arcgis.com/sharing/rest/content/items/ea21c731645442e4b1e33a7d1b920166/data";
-
-
+    const PDF_URL = "https://tep-thames.maps.arcgis.com/sharing/rest/content/items/ea21c731645442e4b1e33a7d1b920166/data";
 
     /* --------------------------------
-       VARIABLES
+       STATE
     -------------------------------- */
-
     let pdf = null;
-
-    let scale = 1;
-
+    let baseScale = 1;      
+    let zoomMultiplier = 1; 
+    let userZoomed = false; 
     let pages = [];
+    let isRendering = false;
+    let resizeTimer = null;
 
+    const dpr = window.devicePixelRatio || 1;
+    const MIN_ZOOM = 0.5;
+    const MAX_ZOOM = 3;
+    const ZOOM_STEP = 0.2;
+    const SIDE_PADDING = 40; 
 
+    const viewerEl = document.getElementById("viewer");
+    const pageInfoEl = document.getElementById("pageInfo");
+    const previousBtn = document.getElementById("previous");
+    const nextBtn = document.getElementById("next");
+    const zoomInBtn = document.getElementById("zoomIn");
+    const zoomOutBtn = document.getElementById("zoomOut");
+    const openNewTabBtn = document.getElementById("openNewTab");
 
     /* --------------------------------
-       STARTING PAGE
-
-       ?page=127
+       DYNAMIC PAGE URL HANDLING
     -------------------------------- */
+    function getRequestedPage() {
+      // Prioritize hash (e.g. #page=5) typical of web map popups
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      if (hashParams.has("page")) return parseInt(hashParams.get("page"));
+      
+      // Fallback to query param (e.g. ?page=5)
+      const queryParams = new URLSearchParams(window.location.search);
+      if (queryParams.has("page")) return parseInt(queryParams.get("page"));
+      
+      return NaN;
+    }
+    const requestedPage = getRequestedPage();
 
-    const params =
+    openNewTabBtn.addEventListener("click", () => {
+      window.open(PDF_URL, "_blank", "noopener");
+    });
 
-      new URLSearchParams(
-        window.location.search
-      );
-
-
-    const requestedPage =
-
-      parseInt(
-        params.get("page")
-      );
-
-
+    /* --------------------------------
+       LAZY RENDERING OBSERVER
+    -------------------------------- */
+    const visibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const pageNumber = parseInt(entry.target.dataset.page);
+          const pageObj = pages.find(p => p.number === pageNumber);
+          if (pageObj && !pageObj.rendered) {
+            renderCanvas(pageObj);
+          }
+        }
+      });
+    }, { root: viewerEl, rootMargin: "600px 0px" }); // Preload nearby pages
 
     /* --------------------------------
        LOAD PDF
     -------------------------------- */
-
     async function loadPDF() {
-
       try {
+        pdf = await pdfjsLib.getDocument({ url: PDF_URL }).promise;
+        const loadingEl = document.getElementById("loading");
+        if (loadingEl) loadingEl.remove();
 
+        await computeFitScale();
+        await prepareAllPages();
 
-        pdf = await
-
-          pdfjsLib.getDocument({
-
-            url: PDF_URL
-
-          }).promise;
-
-
-
-        document.getElementById(
-          "loading"
-        ).remove();
-
-
-
-        /*
-          Render all pages
-        */
-
-        await renderAllPages();
-
-
-
-        /*
-          If a page was supplied in the URL,
-          scroll to that page.
-        */
-
-        if (
-
-          !isNaN(requestedPage) &&
-
-          requestedPage >= 1 &&
-
-          requestedPage <= pdf.numPages
-
-        ) {
-
-          setTimeout(() => {
-
-            scrollToPage(
-              requestedPage
-            );
-
-          }, 100);
-
+        if (!isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= pdf.numPages) {
+          requestAnimationFrame(() => scrollToPage(requestedPage, false));
         }
 
-
-      }
-
-      catch (error) {
-
+        window.addEventListener("resize", onResize);
+      } catch (error) {
         console.error(error);
-
-
-        document.getElementById(
-          "loading"
-        ).textContent =
-
-          "Unable to load the report.";
-
+        const loadingEl = document.getElementById("loading");
+        if (loadingEl) {
+          loadingEl.classList.add("error");
+          loadingEl.innerHTML = "<span>Unable to load the report.</span>";
+        }
+        pageInfoEl.textContent = "Error";
       }
-
     }
-
-
 
     /* --------------------------------
-       RENDER ALL PAGES
+       FIT-TO-WIDTH BASE SCALE
     -------------------------------- */
-
-    async function renderAllPages() {
-
-
-      const viewer =
-
-        document.getElementById(
-          "viewer"
-        );
-
-
-      for (
-
-        let pageNumber = 1;
-
-        pageNumber <= pdf.numPages;
-
-        pageNumber++
-
-      ) {
-
-
-        const page =
-
-          await pdf.getPage(
-            pageNumber
-          );
-
-
-        const viewport =
-
-          page.getViewport({
-
-            scale: scale
-
-          });
-
-
-
-        /*
-          Create page wrapper
-        */
-
-        const pageContainer =
-
-          document.createElement(
-            "div"
-          );
-
-
-        pageContainer.className =
-          "page";
-
-
-        pageContainer.dataset.page =
-          pageNumber;
-
-
-
-        /*
-          Create canvas
-        */
-
-        const canvas =
-
-          document.createElement(
-            "canvas"
-          );
-
-
-        canvas.width =
-          viewport.width;
-
-        canvas.height =
-          viewport.height;
-
-
-
-        pageContainer.appendChild(
-          canvas
-        );
-
-
-        viewer.appendChild(
-          pageContainer
-        );
-
-
-
-        const context =
-          canvas.getContext("2d");
-
-
-        await page.render({
-
-          canvasContext:
-            context,
-
-          viewport:
-            viewport
-
-        }).promise;
-
-
-        pages.push({
-
-          number:
-            pageNumber,
-
-          container:
-            pageContainer
-
-        });
-
-      }
-
-
-      updatePageIndicator();
-
+    async function computeFitScale() {
+      const firstPage = await pdf.getPage(1);
+      const unscaledViewport = firstPage.getViewport({ scale: 1 });
+      const availableWidth = Math.max(viewerEl.clientWidth - SIDE_PADDING, 280);
+      baseScale = availableWidth / unscaledViewport.width;
     }
 
+    function currentScale() {
+      return baseScale * zoomMultiplier;
+    }
 
+    /* --------------------------------
+       PREPARE PAGES (LAZY LOAD ENABLED)
+    -------------------------------- */
+    async function prepareAllPages() {
+      if (isRendering) return;
+      isRendering = true;
+
+      visibilityObserver.disconnect();
+      viewerEl.querySelectorAll(".page").forEach(el => el.remove());
+      pages = [];
+
+      const scale = currentScale();
+
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+        const page = await pdf.getPage(pageNumber);
+        const viewport = page.getViewport({ scale });
+
+        const pageContainer = document.createElement("div");
+        pageContainer.className = "page";
+        pageContainer.dataset.page = pageNumber;
+        
+        // Lock dimensions to maintain accurate scroll layout before canvas renders
+        pageContainer.style.width = Math.floor(viewport.width) + "px";
+        pageContainer.style.height = Math.floor(viewport.height) + "px";
+
+        viewerEl.appendChild(pageContainer);
+
+        const pageObj = { 
+          number: pageNumber, 
+          container: pageContainer, 
+          pageData: page, 
+          viewport: viewport, 
+          rendered: false 
+        };
+        
+        pages.push(pageObj);
+        visibilityObserver.observe(pageContainer);
+      }
+
+      isRendering = false;
+      updatePageIndicator();
+    }
+
+    async function renderCanvas(pageObj) {
+      pageObj.rendered = true;
+      const canvas = document.createElement("canvas");
+      
+      canvas.width = Math.floor(pageObj.viewport.width * dpr);
+      canvas.height = Math.floor(pageObj.viewport.height * dpr);
+      canvas.style.width = Math.floor(pageObj.viewport.width) + "px";
+      canvas.style.height = Math.floor(pageObj.viewport.height) + "px";
+
+      pageObj.container.appendChild(canvas);
+      const context = canvas.getContext("2d");
+      const transform = dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null;
+
+      await pageObj.pageData.render({
+        canvasContext: context,
+        viewport: pageObj.viewport,
+        transform: transform
+      }).promise;
+    }
 
     /* --------------------------------
        SCROLL TO PAGE
     -------------------------------- */
-
-    function scrollToPage(
-      pageNumber
-    ) {
-
-
-      const target =
-
-        pages.find(
-          p =>
-            p.number === pageNumber
-        );
-
-
+    function scrollToPage(pageNumber, smooth = true) {
+      const target = pages.find(p => p.number === pageNumber);
       if (!target) return;
-
-
       target.container.scrollIntoView({
-
-        behavior: "smooth",
-
-        block: "start"
-
+        behavior: smooth ? "smooth" : "auto",
+        block: "center"
       });
-
     }
 
-
+    function getCurrentPageNumber() {
+      const match = pageInfoEl.textContent.match(/\d+/);
+      return match ? parseInt(match[0]) : 1;
+    }
 
     /* --------------------------------
-       PAGE INDICATOR
+       ACTIVE PAGE ANIMATIONS & INDICATOR
     -------------------------------- */
-
     function updatePageIndicator() {
+      if (!pages.length) return;
+      
+      let closestPage = pages[0];
+      let minDistance = Infinity;
+      const viewportCenter = window.innerHeight / 2;
 
+      // Find the page closest to the center of the viewport
+      for (const page of pages) {
+        const rect = page.container.getBoundingClientRect();
+        const pageCenter = rect.top + (rect.height / 2);
+        const distance = Math.abs(pageCenter - viewportCenter);
 
-      const viewer =
-
-        document.getElementById(
-          "viewer"
-        );
-
-
-      const viewerTop =
-        viewer.scrollTop;
-
-
-      let current = 1;
-
-
-      for (
-        const page of pages
-      ) {
-
-
-        if (
-
-          page.container.offsetTop
-          <=
-          viewerTop + 150
-
-        ) {
-
-          current =
-            page.number;
-
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestPage = page;
         }
-
       }
 
-
-      document.getElementById(
-        "pageInfo"
-      ).textContent =
-
-        "Page " +
-
-        current +
-
-        " of " +
-
-        pdf.numPages;
-
+      if (closestPage) {
+        const current = closestPage.number;
+        pageInfoEl.textContent = `Page ${current} of ${pdf.numPages}`;
+        
+        pages.forEach(p => {
+          if (p.number === current) {
+            p.container.classList.add("active");
+          } else {
+            p.container.classList.remove("active");
+          }
+        });
+        
+        updateNavState(current);
+      }
     }
 
-
-
-    /* --------------------------------
-       SCROLL EVENT
-    -------------------------------- */
-
-    document
-      .getElementById("viewer")
-      .addEventListener(
-        "scroll",
-        updatePageIndicator
-      );
-
-
-
-    /* --------------------------------
-       NEXT
-    -------------------------------- */
-
-    document
-      .getElementById("next")
-      .addEventListener(
-        "click",
-        function() {
-
-
-          const currentText =
-
-            document.getElementById(
-              "pageInfo"
-            ).textContent;
-
-
-          const match =
-            currentText.match(/\d+/);
-
-
-          const current =
-
-            match
-              ? parseInt(match[0])
-              : 1;
-
-
-          if (
-            current < pdf.numPages
-          ) {
-
-            scrollToPage(
-              current + 1
-            );
-
-          }
-
-        }
-      );
-
-
-
-    /* --------------------------------
-       PREVIOUS
-    -------------------------------- */
-
-    document
-      .getElementById("previous")
-      .addEventListener(
-        "click",
-        function() {
-
-
-          const currentText =
-
-            document.getElementById(
-              "pageInfo"
-            ).textContent;
-
-
-          const match =
-            currentText.match(/\d+/);
-
-
-          const current =
-
-            match
-              ? parseInt(match[0])
-              : 1;
-
-
-          if (current > 1) {
-
-            scrollToPage(
-              current - 1
-            );
-
-          }
-
-        }
-      );
-
-
-
-    /* --------------------------------
-       ZOOM IN
-    -------------------------------- */
-
-    document
-      .getElementById("zoomIn")
-      .addEventListener(
-        "click",
-        async function() {
-
-
-          scale += 0.2;
-
-
-          await rerender();
-
-        }
-      );
-
-
-
-    /* --------------------------------
-       ZOOM OUT
-    -------------------------------- */
-
-    document
-      .getElementById("zoomOut")
-      .addEventListener(
-        "click",
-        async function() {
-
-
-          if (scale <= 0.6) {
-            return;
-          }
-
-
-          scale -= 0.2;
-
-
-          await rerender();
-
-        }
-      );
-
-
-
-    /* --------------------------------
-       RERENDER AFTER ZOOM
-    -------------------------------- */
-
-    async function rerender() {
-
-
-      const viewer =
-
-        document.getElementById(
-          "viewer"
-        );
-
-
-      /*
-        Remember current page
-      */
-
-      const currentText =
-
-        document.getElementById(
-          "pageInfo"
-        ).textContent;
-
-
-      const match =
-        currentText.match(/\d+/);
-
-
-      const currentPage =
-
-        match
-          ? parseInt(match[0])
-          : 1;
-
-
-      /*
-        Remove existing pages
-      */
-
-      viewer
-        .querySelectorAll(".page")
-        .forEach(
-          element =>
-            element.remove()
-        );
-
-
-      pages = [];
-
-
-      /*
-        Render again
-      */
-
-      await renderAllPages();
-
-
-      /*
-        Return to the page we were on
-      */
-
-      setTimeout(() => {
-
-        scrollToPage(
-          currentPage
-        );
-
-      }, 50);
-
+    function updateNavState(current) {
+      const page = current ?? getCurrentPageNumber();
+      previousBtn.disabled = page <= 1;
+      nextBtn.disabled = page >= (pdf ? pdf.numPages : 1);
+      zoomOutBtn.disabled = zoomMultiplier <= MIN_ZOOM;
+      zoomInBtn.disabled = zoomMultiplier >= MAX_ZOOM;
     }
 
+    viewerEl.addEventListener("scroll", updatePageIndicator);
 
+    /* --------------------------------
+       NEXT / PREVIOUS
+    -------------------------------- */
+    nextBtn.addEventListener("click", () => {
+      const current = getCurrentPageNumber();
+      if (pdf && current < pdf.numPages) scrollToPage(current + 1);
+    });
+
+    previousBtn.addEventListener("click", () => {
+      const current = getCurrentPageNumber();
+      if (current > 1) scrollToPage(current - 1);
+    });
+
+    /* --------------------------------
+       ZOOM
+    -------------------------------- */
+    async function applyZoom(delta) {
+      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(zoomMultiplier + delta).toFixed(2)));
+      if (next === zoomMultiplier) return;
+
+      zoomMultiplier = next;
+      userZoomed = true;
+
+      const currentPage = getCurrentPageNumber();
+      await prepareAllPages();
+      scrollToPage(currentPage, false);
+    }
+
+    zoomInBtn.addEventListener("click", () => applyZoom(ZOOM_STEP));
+    zoomOutBtn.addEventListener("click", () => applyZoom(-ZOOM_STEP));
+
+    /* --------------------------------
+       RESPONSIVE REFIT
+    -------------------------------- */
+    function onResize() {
+      if (userZoomed) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(async () => {
+        const currentPage = getCurrentPageNumber();
+        await computeFitScale();
+        await prepareAllPages();
+        scrollToPage(currentPage, false);
+      }, 200);
+    }
 
     /* --------------------------------
        START
     -------------------------------- */
-
     loadPDF();
-
 
   </script>
 
-
 </body>
-
 </html>
