@@ -9,10 +9,11 @@
 
 <style>
   :root {
-    --accent-1: #c9489a;
-    --accent-2: #c9489a;
+    --accent-1: #9B328B;
+    --accent-2: #9B328B;
     --accent-text: #ffffff;
     --toolbar-height: 56px;
+    --toolbar-control-height: 38px;
     --page-bg: #525659;
     --control-bg: rgba(255, 255, 255, 0.14);
     --control-bg-hover: rgba(255, 255, 255, 0.24);
@@ -32,7 +33,9 @@
     overflow: hidden;
   }
 
-  /* TOOLBAR */
+  /* --------------------------------
+     TOOLBAR
+  -------------------------------- */
   #toolbar {
     position: fixed;
     top: 0;
@@ -42,31 +45,46 @@
     background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 14px;
     padding: 0 16px;
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   }
 
-  .toolbar-group {
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .toolbar-center {
+    display: flex;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .toolbar-right {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 0 0 auto;
   }
 
   #logo {
-    height: 40px;
+    height: 36px;
     width: auto;
-    max-width: 180px;
+    max-width: 160px;
     object-fit: contain;
-    border-radius: 4px;
-    margin-right: 4px;
+    border-radius: 6px;
     flex-shrink: 0;
   }
 
   #title {
     color: var(--accent-text);
-    font-size: 16px;
+    font-size: 15.5px;
     font-weight: 600;
     letter-spacing: 0.2px;
     white-space: nowrap;
@@ -74,54 +92,178 @@
     text-overflow: ellipsis;
   }
 
-  #pageInfo {
-    color: var(--accent-text);
-    font-size: 13.5px;
-    font-weight: 600;
-    min-width: 100px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.2px;
+  /* --------------------------------
+     SEARCH
+  -------------------------------- */
+  .search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    padding: 0 10px;
+    height: var(--toolbar-control-height);
+    width: 100%;
+    max-width: 280px;
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
 
-  /* BUTTONS */
+  .search-wrap:focus-within {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.55);
+  }
+
+  .search-wrap svg {
+    width: 16px;
+    height: 16px;
+    color: rgba(255, 255, 255, 0.85);
+    flex-shrink: 0;
+  }
+
+  .search-wrap input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 13.5px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .search-wrap input::placeholder { color: rgba(255, 255, 255, 0.72); }
+
+  #searchCount {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .search-nav-btn {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.85;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .search-nav-btn svg { width: 15px; height: 15px; }
+  .search-nav-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.18); }
+  .search-nav-btn:disabled { opacity: 0.3; cursor: default; background: transparent; }
+
+  #searchClear {
+    display: none;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  #searchClear:hover { color: #fff; background: rgba(255, 255, 255, 0.18); }
+  #searchClear svg { width: 13px; height: 13px; }
+
+  /* --------------------------------
+     CONTROL GROUP (modern segmented style)
+  -------------------------------- */
+  .control-group {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    height: var(--toolbar-control-height);
+    padding: 0;
+    gap: 1px;
+  }
+
   .control {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    border: 1px solid var(--control-border);
-    background: var(--control-bg);
+    border: none;
+    background: transparent;
     color: var(--accent-text);
-    border-radius: 8px;
-    height: 34px;
-    padding: 0 12px;
+    border-radius: 6px;
+    height: var(--toolbar-control-height);
+    padding: 0 11px;
     font-size: 13.5px;
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
-    transition: background 0.15s ease, transform 0.1s ease;
+    transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
     -webkit-tap-highlight-color: transparent;
     white-space: nowrap;
   }
 
-  .control.icon-only { width: 34px; padding: 0; }
-  .control svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .control:hover { background: var(--control-bg-hover); }
-  .control:active { background: var(--control-bg-active); transform: scale(0.96); }
+  .control.icon-only { width: var(--toolbar-control-height); padding: 0; }
+  .control svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .control:hover { background: rgba(255, 255, 255, 0.15); }
+  .control:active { background: rgba(255, 255, 255, 0.25); transform: scale(0.96); }
 
-  .control:disabled { opacity: 0.4; cursor: default; }
-  .control:disabled:hover { background: var(--control-bg); }
+  .control:disabled { opacity: 0.35; cursor: default; }
+  .control:disabled:hover { background: transparent; }
   .control:disabled:active { transform: none; }
+
+  .control:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  #pageInfo {
+    color: var(--accent-text);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 10px;
+    min-width: 76px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+  }
 
   .divider {
     width: 1px;
-    height: 22px;
-    background: rgba(255, 255, 255, 0.28);
-    margin: 0 4px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 3px;
   }
 
-  /* MAIN SCROLLING AREA */
+  #downloadBtn {
+    height: var(--toolbar-control-height);
+    width: var(--toolbar-control-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  #downloadBtn svg { width: 17px; height: 17px; }
+  #downloadBtn:hover { background: rgba(255, 255, 255, 0.15); }
+  #downloadBtn:active { background: rgba(255, 255, 255, 0.25); transform: scale(0.94); }
+  #downloadBtn:disabled { opacity: 0.5; cursor: default; }
+  #downloadBtn.spinning svg { animation: spin 0.9s linear infinite; }
+
+  /* --------------------------------
+     MAIN SCROLLING AREA
+  -------------------------------- */
   #viewer {
     position: fixed;
     top: var(--toolbar-height);
@@ -130,7 +272,7 @@
     right: 0;
     overflow-y: scroll;
     overflow-x: auto;
-    padding: 32px 20px 60px 20px;
+    padding: 60px 20px 70px 20px;
     background: var(--page-bg);
     display: flex;
     flex-direction: column;
@@ -141,15 +283,18 @@
     display: block;
     position: relative;
     width: fit-content;
-    margin: 0 auto 30px auto;
+    margin: 0 auto 34px auto;
     background: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 0 16px 40px rgba(0, 0, 0, 0.25);
     opacity: 0;
-    transition: opacity 0.3s ease, box-shadow 0.4s ease;
+    transform: scale(0.96);
+    transition: opacity 0.3s ease, box-shadow 0.4s ease, transform 0.12s ease-out;
   }
 
-  .page.visible {
-    opacity: 1;
+  .page.visible { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page { transition: opacity 0.3s ease, box-shadow 0.4s ease; }
   }
 
   canvas {
@@ -168,12 +313,24 @@
     overflow: hidden;
     line-height: 1.0;
   }
-  
+
   .textLayer ::selection {
-    background: rgba(0, 100, 255, 0.25);
+    background: rgba(0, 100, 255, 0.28);
   }
 
-  /* LOADING STATE & SCROLLBAR */
+  .textLayer span.search-hit {
+    background: rgba(255, 210, 0, 0.55);
+    border-radius: 2px;
+    mix-blend-mode: multiply;
+  }
+
+  .textLayer span.search-hit.search-hit-active {
+    background: rgba(255, 140, 0, 0.75);
+  }
+
+  /* --------------------------------
+     LOADING STATE & SCROLLBAR
+  -------------------------------- */
   #loading {
     display: flex;
     flex-direction: column;
@@ -214,17 +371,24 @@
   }
   #viewer::-webkit-scrollbar-thumb:hover { background: #8e9296; }
 
+  @media (max-width: 900px) {
+    .search-wrap { max-width: 180px; }
+  }
+
   @media (max-width: 768px) {
     .control-label { display: none; }
     .control { padding: 0 9px; }
-    #pageInfo { min-width: 80px; font-size: 12.5px; }
-    #viewer { padding: 16px 8px 40px 8px; }
+    #pageInfo { min-width: 60px; font-size: 12.5px; padding: 0 6px; }
+    #viewer { padding: 50px 8px 50px 8px; }
     #title { font-size: 14px; }
+    .search-wrap { max-width: 130px; }
   }
 
-  @media (max-width: 520px) {
+  @media (max-width: 560px) {
     #title { display: none; }
-    #logo { max-width: 80px; height: 32px; }
+    #logo { max-width: 70px; height: 30px; }
+    .search-wrap { max-width: 96px; }
+    #searchCount { display: none; }
   }
 </style>
 </head>
@@ -232,52 +396,58 @@
 <body>
 
   <div id="toolbar">
-    <div class="toolbar-group">
-      <img id="logo" src="https://tep-thames.maps.arcgis.com/sharing/rest/content/items/4419448ca1fd4bac82995928b1517c08/data" alt="Logo" onerror="this.style.display='none'">
+    <div class="toolbar-left">
+      <img id="logo" src="https://tep-thames.maps.arcgis.com/sharing/rest/content/items/4419448ca1fd4bac82995928b1517c08/data" alt="Logo" referrerpolicy="no-referrer" onerror="this.style.display='none'">
       <span id="title">JTS Strategy London Central</span>
     </div>
 
-    <div class="toolbar-group">
-      <button class="control" id="previous" title="Previous page" aria-label="Previous page">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-left" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M15 6l-6 6l6 6" />
-        </svg>
-        <span class="control-label">Previous page</span>
-      </button>
-      
-      <button class="control" id="next" title="Next page" aria-label="Next page">
-        <span class="control-label">Next page</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevron-right" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M9 6l6 6l-6 6" />
-        </svg>
-      </button>
+    <div class="toolbar-center">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="searchInput" placeholder="Search report…" autocomplete="off">
+        <button id="searchClear" title="Clear search" aria-label="Clear search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+        <span id="searchCount"></span>
+        <button class="search-nav-btn" id="searchPrev" title="Previous match" aria-label="Previous match" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6 -6l6 6" /></svg>
+        </button>
+        <button class="search-nav-btn" id="searchNext" title="Next match" aria-label="Next match" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="toolbar-right">
+      <div class="control-group">
+        <button class="control" id="previous" title="Previous page" aria-label="Previous page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6" /></svg>
+          <span class="control-label">Previous</span>
+        </button>
+        <button class="control" id="next" title="Next page" aria-label="Next page">
+          <span class="control-label">Next</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6" /></svg>
+        </button>
+
+        <div class="divider"></div>
+
+        <button class="control icon-only" id="zoomOut" title="Zoom out" aria-label="Zoom out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7" /><path d="M21 21l-6 -6" /><path d="M7 10l6 0" /></svg>
+        </button>
+        <button class="control icon-only" id="zoomIn" title="Zoom in" aria-label="Zoom in">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7" /><path d="M21 21l-6 -6" /><path d="M7 10l6 0" /><path d="M10 7l0 6" /></svg>
+        </button>
+
+        <div class="divider"></div>
+
+        <span id="pageInfo">Loading…</span>
+      </div>
 
       <div class="divider"></div>
 
-      <button class="control icon-only" id="zoomOut" title="Zoom out" aria-label="Zoom out">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-zoom-out" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
-          <path d="M21 21l-6 -6" />
-          <path d="M7 10l6 0" />
-        </svg>
+      <button id="downloadBtn" title="Download PDF" aria-label="Download PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
       </button>
-      
-      <button class="control icon-only" id="zoomIn" title="Zoom in" aria-label="Zoom in">
-        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-zoom-in" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
-          <path d="M21 21l-6 -6" />
-          <path d="M7 10l6 0" />
-          <path d="M10 7l0 6" />
-        </svg>
-      </button>
-      
-      <div class="divider"></div>
-      
-      <span id="pageInfo">Loading…</span>
     </div>
   </div>
 
@@ -296,21 +466,24 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
     const PDF_URL = "https://tep-thames.maps.arcgis.com/sharing/rest/content/items/ea21c731645442e4b1e33a7d1b920166/data";
+    const DOWNLOAD_FILENAME = "JTS-Strategy-London-Central.pdf";
 
     let pdf = null;
-    let baseScale = 1;     
-    let zoomMultiplier = 1; 
-    let userZoomed = false; 
+    let baseScale = 1;
+    let zoomMultiplier = 1;
+    let userZoomed = false;
     let pages = [];
     let currentPageNum = 1;
-    let isZooming = false; 
+    let isZooming = false;
     let zoomScrollTimeout = null;
     let resizeTimer = null;
+    let scrollRAF = null;
 
     const dpr = window.devicePixelRatio || 1;
     const MIN_ZOOM = 0.5;
     const MAX_ZOOM = 4;
     const ZOOM_STEP = 0.25;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const viewerEl = document.getElementById("viewer");
     const pageInfoEl = document.getElementById("pageInfo");
@@ -319,6 +492,12 @@
     const zoomInBtn = document.getElementById("zoomIn");
     const zoomOutBtn = document.getElementById("zoomOut");
     const loadingEl = document.getElementById("loading");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const searchInput = document.getElementById("searchInput");
+    const searchClearBtn = document.getElementById("searchClear");
+    const searchCountEl = document.getElementById("searchCount");
+    const searchPrevBtn = document.getElementById("searchPrev");
+    const searchNextBtn = document.getElementById("searchNext");
 
     /* --------------------------------
         ROBUST URL PARSING
@@ -329,7 +508,6 @@
         const page = parseInt(searchParams.get('page'), 10);
         if (!isNaN(page)) return page;
       }
-
       const hash = window.location.hash;
       if (hash) {
         const match = hash.match(/page=(\d+)/);
@@ -367,18 +545,20 @@
         await prepareAllPages();
 
         const requestedPage = parseRequestedPage();
-        
+
         requestAnimationFrame(() => {
           if (!isNaN(requestedPage) && requestedPage >= 1 && requestedPage <= pdf.numPages) {
             scrollToPage(requestedPage, false);
           } else {
             updatePageIndicatorUI();
           }
-          
+
           if (loadingEl) {
             loadingEl.style.opacity = '0';
             setTimeout(() => loadingEl.remove(), 300);
           }
+
+          updateCoverflowEffect();
         });
 
         window.addEventListener("resize", onResize);
@@ -396,7 +576,7 @@
       const firstPage = await pdf.getPage(1);
       const unscaledViewport = firstPage.getViewport({ scale: 1 });
       const targetWidth = Math.max(viewerEl.clientWidth * 0.65, 320);
-      const finalWidth = Math.min(targetWidth, 1100); 
+      const finalWidth = Math.min(targetWidth, 1100);
       baseScale = finalWidth / unscaledViewport.width;
     }
 
@@ -420,32 +600,33 @@
         pageContainer.dataset.page = pageNumber;
         pageContainer.style.width = Math.floor(viewport.width) + "px";
         pageContainer.style.height = Math.floor(viewport.height) + "px";
+        pageContainer.style.setProperty("--scale-factor", scale);
 
         viewerEl.appendChild(pageContainer);
-        
+
         requestAnimationFrame(() => pageContainer.classList.add("visible"));
 
-        const pageObj = { 
-          number: pageNumber, 
-          container: pageContainer, 
-          pageData: page, 
-          viewport: viewport, 
+        const pageObj = {
+          number: pageNumber,
+          container: pageContainer,
+          pageData: page,
+          viewport: viewport,
           rendered: false,
           isRendering: false
         };
-        
+
         pages.push(pageObj);
         visibilityObserver.observe(pageContainer);
       }
     }
 
     /* --------------------------------
-        SEAMLESS RENDERING 
+        SEAMLESS RENDERING
     -------------------------------- */
     async function renderCanvas(pageObj) {
       if (pageObj.rendered || pageObj.isRendering) return;
       pageObj.isRendering = true;
-      
+
       const canvas = document.createElement("canvas");
       canvas.width = Math.floor(pageObj.viewport.width * dpr);
       canvas.height = Math.floor(pageObj.viewport.height * dpr);
@@ -469,6 +650,7 @@
         const textLayerDiv = document.createElement("div");
         textLayerDiv.className = "textLayer";
         pageObj.container.appendChild(textLayerDiv);
+        pageObj.container.style.setProperty("--scale-factor", pageObj.viewport.scale);
 
         if (pdfjsLib.TextLayer) {
           const textLayer = new pdfjsLib.TextLayer({
@@ -485,13 +667,75 @@
             textDivs: []
           });
         }
-        
+
+        setupParagraphSelection(textLayerDiv);
         pageObj.rendered = true;
+
+        if (searchTerm) highlightMatchesOnPage(pageObj.number);
       } catch (err) {
         console.warn("Render error:", err);
       } finally {
         pageObj.isRendering = false;
       }
+    }
+
+    /* --------------------------------
+        DOUBLE-CLICK -> SELECT PARAGRAPH
+    -------------------------------- */
+    function setupParagraphSelection(textLayerDiv) {
+      const spans = Array.from(textLayerDiv.querySelectorAll("span"));
+      if (!spans.length) return;
+
+      const containerRect = textLayerDiv.getBoundingClientRect();
+      const lineMap = new Map();
+
+      spans.forEach(span => {
+        const rect = span.getBoundingClientRect();
+        const top = Math.round(rect.top - containerRect.top);
+        if (!lineMap.has(top)) lineMap.set(top, []);
+        lineMap.get(top).push(span);
+      });
+
+      const lineTops = Array.from(lineMap.keys()).sort((a, b) => a - b);
+      if (!lineTops.length) return;
+
+      const gaps = [];
+      for (let i = 1; i < lineTops.length; i++) gaps.push(lineTops[i] - lineTops[i - 1]);
+      gaps.sort((a, b) => a - b);
+      const medianGap = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 20;
+      const breakThreshold = Math.max(medianGap * 1.6, medianGap + 4);
+
+      let paragraphIndex = 0;
+      let prevTop = null;
+      lineTops.forEach(top => {
+        if (prevTop !== null && (top - prevTop) > breakThreshold) paragraphIndex++;
+        lineMap.get(top).forEach(span => { span.dataset.paragraph = paragraphIndex; });
+        prevTop = top;
+      });
+
+      textLayerDiv.addEventListener("dblclick", (event) => {
+        const span = event.target.closest("span[data-paragraph]");
+        if (!span) return;
+
+        const pIndex = span.dataset.paragraph;
+        const groupSpans = spans.filter(s => s.dataset.paragraph === pIndex);
+        if (!groupSpans.length) return;
+
+        const first = groupSpans[0];
+        const last = groupSpans[groupSpans.length - 1];
+
+        try {
+          const range = document.createRange();
+          range.setStart(first.firstChild || first, 0);
+          range.setEnd(last.firstChild || last, (last.textContent || "").length);
+
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } catch (err) {
+          console.warn("Paragraph selection failed:", err);
+        }
+      });
     }
 
     /* --------------------------------
@@ -506,7 +750,7 @@
 
       viewerEl.scrollTo({
         top: Math.max(0, targetTop),
-        behavior: smooth ? "smooth" : "auto"
+        behavior: smooth && !prefersReducedMotion ? "smooth" : "auto"
       });
 
       currentPageNum = pageNumber;
@@ -521,34 +765,72 @@
     function updatePageIndicatorUI() {
       if (!pdf) return;
       pageInfoEl.textContent = `Page ${currentPageNum} of ${pdf.numPages}`;
-      
+
       previousBtn.disabled = currentPageNum <= 1;
       nextBtn.disabled = currentPageNum >= pdf.numPages;
       zoomOutBtn.disabled = zoomMultiplier <= MIN_ZOOM;
       zoomInBtn.disabled = zoomMultiplier >= MAX_ZOOM;
     }
 
+    /* --------------------------------
+        COVERFLOW SCROLL ANIMATION
+        (next page grows/fades in, previous page shrinks/fades out)
+    -------------------------------- */
+    function updateCoverflowEffect(centerIndexHint) {
+      if (!pages.length || prefersReducedMotion) return;
+
+      const viewerRect = viewerEl.getBoundingClientRect();
+      const centerY = viewerRect.top + viewerRect.height / 2;
+
+      const idx = centerIndexHint ?? pages.findIndex(p => p.number === currentPageNum);
+      if (idx === -1) return;
+
+      const windowSize = 4;
+      const start = Math.max(0, idx - windowSize);
+      const end = Math.min(pages.length - 1, idx + windowSize);
+
+      for (let i = start; i <= end; i++) {
+        const p = pages[i];
+        const rect = p.container.getBoundingClientRect();
+        const pageCenter = rect.top + rect.height / 2;
+        const dist = Math.abs(pageCenter - centerY);
+        const norm = Math.min(1, dist / (viewerRect.height * 0.8 || 1));
+        const opacity = 1 - norm * 0.5;
+        const scale = 1 - norm * 0.07;
+        p.container.style.opacity = opacity.toFixed(3);
+        p.container.style.transform = `scale(${scale.toFixed(3)})`;
+      }
+    }
+
     function onScrollUpdate() {
-      if (!pages.length || isZooming) return;
+      if (scrollRAF) return;
+      scrollRAF = requestAnimationFrame(() => {
+        scrollRAF = null;
+        if (!pages.length || isZooming) return;
 
-      const viewerCenter = viewerEl.scrollTop + (viewerEl.clientHeight / 2);
-      let closestPage = pages[0];
-      let minDistance = Infinity;
+        const viewerCenter = viewerEl.scrollTop + (viewerEl.clientHeight / 2);
+        let closestPage = pages[0];
+        let closestIdx = 0;
+        let minDistance = Infinity;
 
-      for (const page of pages) {
-        const pageCenter = page.container.offsetTop + (page.container.offsetHeight / 2);
-        const distance = Math.abs(pageCenter - viewerCenter);
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestPage = page;
+        for (let i = 0; i < pages.length; i++) {
+          const page = pages[i];
+          const pageCenter = page.container.offsetTop + (page.container.offsetHeight / 2);
+          const distance = Math.abs(pageCenter - viewerCenter);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestPage = page;
+            closestIdx = i;
+          }
         }
-      }
 
-      if (closestPage && closestPage.number !== currentPageNum) {
-        currentPageNum = closestPage.number;
-        updatePageIndicatorUI();
-      }
+        if (closestPage && closestPage.number !== currentPageNum) {
+          currentPageNum = closestPage.number;
+          updatePageIndicatorUI();
+        }
+
+        updateCoverflowEffect(closestIdx);
+      });
     }
 
     viewerEl.addEventListener("scroll", onScrollUpdate);
@@ -562,25 +844,22 @@
     });
 
     /* --------------------------------
-        ROCK-SOLID ZOOM ANCHORING ENGINE
+        ZOOM ANCHORING ENGINE
     -------------------------------- */
     async function applyZoom(delta) {
       const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, +(zoomMultiplier + delta).toFixed(2)));
       if (next === zoomMultiplier || !pages.length) return;
 
-      // 1. Lock the scroll event tracker so scrolling during zoom won't jump pages
       isZooming = true;
 
-      // 2. Lock current page anchor and calculate relative position inside page
       const anchoredPageNum = currentPageNum;
       const targetPage = pages.find(p => p.number === anchoredPageNum) || pages[0];
-      
+
       const currentScrollTop = viewerEl.scrollTop;
       const oldPageTop = targetPage.container.offsetTop;
       const oldPageHeight = targetPage.container.offsetHeight || 1;
       const relativeOffset = (currentScrollTop - oldPageTop) / oldPageHeight;
 
-      // 3. Update scale & resize page containers
       zoomMultiplier = next;
       userZoomed = true;
       const scale = currentScale();
@@ -590,33 +869,32 @@
         pageObj.viewport = viewport;
         pageObj.container.style.width = Math.floor(viewport.width) + "px";
         pageObj.container.style.height = Math.floor(viewport.height) + "px";
-        
+        pageObj.container.style.setProperty("--scale-factor", scale);
+
+        const existingCanvas = pageObj.container.querySelector("canvas");
+        if (existingCanvas) existingCanvas.style.filter = "blur(2px)";
+
         const existingText = pageObj.container.querySelector(".textLayer");
         if (existingText) existingText.style.display = "none";
-        
-        pageObj.rendered = false; 
+
+        pageObj.rendered = false;
       }
 
-      // 4. Reposition scrollbar synchronously based on new page heights
       const newPageTop = targetPage.container.offsetTop;
       const newPageHeight = targetPage.container.offsetHeight;
       viewerEl.scrollTop = Math.max(0, newPageTop + (newPageHeight * relativeOffset));
 
-      // 5. Ensure current page stays strictly locked
       currentPageNum = anchoredPageNum;
       updatePageIndicatorUI();
+      updateCoverflowEffect();
 
-      // 6. Re-observe for rendering high-res canvas
       pages.forEach(p => {
         visibilityObserver.unobserve(p.container);
         visibilityObserver.observe(p.container);
       });
 
-      // 7. Release lock after layout shifts settle
       clearTimeout(zoomScrollTimeout);
-      zoomScrollTimeout = setTimeout(() => {
-        isZooming = false;
-      }, 400);
+      zoomScrollTimeout = setTimeout(() => { isZooming = false; }, 400);
     }
 
     zoomInBtn.addEventListener("click", () => applyZoom(ZOOM_STEP));
@@ -627,7 +905,7 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(async () => {
         isZooming = true;
-        
+
         const anchoredPageNum = currentPageNum;
         const targetPage = pages.find(p => p.number === anchoredPageNum) || pages[0];
         const currentScrollTop = viewerEl.scrollTop;
@@ -643,11 +921,15 @@
           pageObj.viewport = viewport;
           pageObj.container.style.width = Math.floor(viewport.width) + "px";
           pageObj.container.style.height = Math.floor(viewport.height) + "px";
-          
+          pageObj.container.style.setProperty("--scale-factor", scale);
+
+          const existingCanvas = pageObj.container.querySelector("canvas");
+          if (existingCanvas) existingCanvas.style.filter = "blur(2px)";
+
           const existingText = pageObj.container.querySelector(".textLayer");
           if (existingText) existingText.style.display = "none";
-          
-          pageObj.rendered = false; 
+
+          pageObj.rendered = false;
         }
 
         const newPageTop = targetPage.container.offsetTop;
@@ -656,6 +938,7 @@
 
         currentPageNum = anchoredPageNum;
         updatePageIndicatorUI();
+        updateCoverflowEffect();
 
         pages.forEach(p => {
           visibilityObserver.unobserve(p.container);
@@ -663,11 +946,174 @@
         });
 
         clearTimeout(zoomScrollTimeout);
-        zoomScrollTimeout = setTimeout(() => {
-          isZooming = false;
-        }, 400);
+        zoomScrollTimeout = setTimeout(() => { isZooming = false; }, 400);
       }, 200);
     }
+
+    /* --------------------------------
+        DOWNLOAD
+    -------------------------------- */
+    async function downloadPDF() {
+      downloadBtn.disabled = true;
+      downloadBtn.classList.add("spinning");
+      try {
+        const response = await fetch(PDF_URL);
+        if (!response.ok) throw new Error("Network response was not ok: " + response.status);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = DOWNLOAD_FILENAME;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+      } catch (err) {
+        console.warn("Direct download failed, opening the file instead:", err);
+        window.open(PDF_URL, "_blank", "noopener");
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.classList.remove("spinning");
+      }
+    }
+
+    downloadBtn.addEventListener("click", downloadPDF);
+
+    /* --------------------------------
+        SEARCH
+    -------------------------------- */
+    let searchTerm = "";
+    let searchMatches = [];
+    let searchIndex = -1;
+    const textContentCache = new Map();
+
+    async function getPageText(pageNumber) {
+      if (textContentCache.has(pageNumber)) return textContentCache.get(pageNumber);
+      const pageObj = pages.find(p => p.number === pageNumber);
+      const page = pageObj ? pageObj.pageData : await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const text = content.items.map(item => item.str).join(" ");
+      textContentCache.set(pageNumber, text);
+      return text;
+    }
+
+    function clearAllHighlights() {
+      viewerEl.querySelectorAll(".textLayer span.search-hit").forEach(span => {
+        span.classList.remove("search-hit", "search-hit-active");
+      });
+    }
+
+    function highlightMatchesOnPage(pageNumber) {
+      const pageObj = pages.find(p => p.number === pageNumber);
+      if (!pageObj) return;
+      const textLayerDiv = pageObj.container.querySelector(".textLayer");
+      if (!textLayerDiv || !searchTerm) return;
+
+      const lower = searchTerm.toLowerCase();
+      textLayerDiv.querySelectorAll("span").forEach(span => {
+        span.classList.remove("search-hit", "search-hit-active");
+        const text = span.textContent;
+        if (text && text.toLowerCase().includes(lower)) {
+          span.classList.add("search-hit", "search-hit-active");
+        }
+      });
+    }
+
+    function waitForRender(pageNumber, timeout = 3000) {
+      return new Promise(resolve => {
+        const start = Date.now();
+        (function check() {
+          const p = pages.find(pg => pg.number === pageNumber);
+          if ((p && p.rendered) || Date.now() - start > timeout) return resolve(p);
+          requestAnimationFrame(check);
+        })();
+      });
+    }
+
+    async function goToSearchMatch() {
+      if (searchIndex < 0 || searchIndex >= searchMatches.length) return;
+      clearAllHighlights();
+      const pageNumber = searchMatches[searchIndex];
+      scrollToPage(pageNumber);
+      await waitForRender(pageNumber);
+      highlightMatchesOnPage(pageNumber);
+      updateSearchUI();
+    }
+
+    function updateSearchUI() {
+      if (!searchTerm) {
+        searchCountEl.textContent = "";
+        searchClearBtn.style.display = "none";
+        searchPrevBtn.disabled = true;
+        searchNextBtn.disabled = true;
+        return;
+      }
+      searchClearBtn.style.display = "flex";
+      searchCountEl.textContent = searchMatches.length
+        ? `${searchIndex + 1}/${searchMatches.length}`
+        : "0/0";
+      searchPrevBtn.disabled = searchMatches.length < 2;
+      searchNextBtn.disabled = searchMatches.length < 2;
+    }
+
+    async function runSearch(rawTerm) {
+      const term = rawTerm.trim();
+      searchTerm = term;
+      searchMatches = [];
+      searchIndex = -1;
+      clearAllHighlights();
+      updateSearchUI();
+
+      if (!term || !pdf) return;
+
+      const lower = term.toLowerCase();
+      for (let n = 1; n <= pdf.numPages; n++) {
+        const text = (await getPageText(n)).toLowerCase();
+        if (text.includes(lower)) searchMatches.push(n);
+      }
+
+      if (searchMatches.length) {
+        searchIndex = 0;
+        await goToSearchMatch();
+      }
+      updateSearchUI();
+    }
+
+    searchInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      const value = searchInput.value;
+      if (value.trim() === searchTerm && searchMatches.length) {
+        searchIndex = (searchIndex + 1) % searchMatches.length;
+        goToSearchMatch();
+      } else {
+        runSearch(value);
+      }
+    });
+
+    searchPrevBtn.addEventListener("click", () => {
+      if (!searchMatches.length) return;
+      searchIndex = (searchIndex - 1 + searchMatches.length) % searchMatches.length;
+      goToSearchMatch();
+    });
+
+    searchNextBtn.addEventListener("click", () => {
+      if (!searchMatches.length) return;
+      searchIndex = (searchIndex + 1) % searchMatches.length;
+      goToSearchMatch();
+    });
+
+    searchClearBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      searchInput.focus();
+      searchTerm = "";
+      searchMatches = [];
+      searchIndex = -1;
+      clearAllHighlights();
+      updateSearchUI();
+    });
 
     loadPDF();
 
